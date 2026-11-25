@@ -695,7 +695,7 @@ function tabMe(){
   <section class="card setrow"><b>Target ${e==='CELPIP'?'level':'band'}</b><div class="pgrid2">${tg.map(v=>`<button class="pick ${P.target[e]===v?'on':''}" data-act="setTarget" data-arg="${v}"><b>${v}</b></button>`).join('')}</div></section>
   <section class="card setrow"><b>Daily goal</b>${[[20,'Casual','About one lesson'],[40,'Regular','Two lessons'],[60,'Serious','Three lessons'],[100,'Intense','Five lessons']].map(([v,n,s])=>`<button class="pick ${P.goal===v?'on':''}" data-act="setGoal" data-arg="${v}"><span><b>${n}</b><small>${v} XP · ${s}</small></span></button>`).join('')}</section>
   <section class="card setrow"><b>Exam date</b><input class="date" type="date" id="edate" value="${esc(P.date)}"><span class="muted" id="dleft">${dl==null?'Optional. Add it to see a countdown.':dl>=0?dl+' days to go.':'That date has passed.'}</span></section>
-  <section class="card setrow"><label class="sw">Sound effects<input type="checkbox" id="snd" ${P.sound?'checked':''}></label><div class="muted">${sampleFn?'Claude question writing and grading are on.':'Grading and fresh questions need this page open in Claude.'} ${dict?'Voice input is on.':'Voice input is off here, so Speaking uses typing.'}</div></section>
+  <section class="card setrow"><label class="sw">Sound effects<input type="checkbox" id="snd" ${P.sound?'checked':''}></label><label class="sw">Examiner voice<input type="checkbox" id="vox" ${P.voice===false?'':'checked'}></label><div class="muted">AI question writing and grading are on. ${dict?'Voice input is on.':'Voice input is off here, so Speaking uses typing.'}</div></section>
   <button class="btn ghost block" data-act="resetAsk">Reset progress</button></div>`;
 }
 
@@ -1105,13 +1105,14 @@ render();
 /* ---- spoken examiner voice ---- */
 var VX={unlocked:false,pending:'',key:''};
 function plain(h){const d=document.createElement('div');d.innerHTML=String(h);return (d.textContent||'').replace(/\s+/g,' ').trim();}
+function bestVoice(){const vs=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));if(!vs.length)return null;
+ const sc=v=>(/natural|neural|online/i.test(v.name)?50:0)+(/google/i.test(v.name)?30:0)+(/premium|enhanced|samantha|ava|allison|serena|aria|jenny|sonia|libby|karen|daniel/i.test(v.name)?25:0)+(/en-(CA|GB|AU|US)/i.test(v.lang)?5:0)-(/compact|espeak/i.test(v.name)?30:0);
+ return vs.slice().sort((a,b)=>sc(b)-sc(a))[0];}
 function speakEx(text){if(!text||P.voice===false||!window.speechSynthesis)return;
  if(!VX.unlocked){VX.pending=text;return;}
- try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);const vs=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));
-  u.voice=vs.find(v=>/natural|google|samantha|aria|jenny/i.test(v.name))||vs.find(v=>/en-(CA|GB|US)/i.test(v.lang))||null;u.lang=(u.voice&&u.voice.lang)||'en-US';u.rate=.95;speechSynthesis.speak(u);}catch(e){}}
+ try{speechSynthesis.cancel();const v=bestVoice();(String(text).match(/[^.!?:]+[.!?:]*/g)||[text]).forEach(sn=>{const s=sn.trim();if(!s)return;const u=new SpeechSynthesisUtterance(s);if(v){u.voice=v;u.lang=v.lang;}else u.lang='en-US';u.rate=.93;u.pitch=1;speechSynthesis.speak(u);});}catch(e){}}
 document.addEventListener('pointerdown',()=>{if(!VX.unlocked){VX.unlocked=true;if(VX.pending){const t=VX.pending;VX.pending='';speakEx(t);}}},{capture:true});
-(function(){const b=document.createElement('button');b.setAttribute('aria-label','Toggle examiner voice');b.style.cssText='position:fixed;left:12px;bottom:12px;z-index:1001;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:20px;cursor:pointer';
- const up=()=>{b.textContent=P.voice===false?'🔇':'🔊';};up();b.onclick=()=>{P.voice=P.voice===false;saveP();up();if(P.voice===false)try{speechSynthesis.cancel();}catch(e){}else speakEx('Examiner voice is on.');};document.body.appendChild(b);})();
+document.addEventListener('change',e=>{if(e.target&&e.target.id==='vox'){P.voice=e.target.checked;saveP();if(!P.voice)try{speechSynthesis.cancel();}catch(x){}}});
 const _vo=viewOnboard;viewOnboard=function(){const h=_vo();const d=document.createElement('div');d.innerHTML=h;const li=[...d.querySelectorAll('li')].map(x=>x.textContent).join('. ');const t=((d.querySelector('.bubble')||{}).textContent||'')+' '+li;const k=S.ob.step+'|'+P.exam;if(k!==VX.key){VX.key=k;speakEx(t);}return h;};
 const _ss=startSheet;startSheet=function(sk,t){_ss(sk,t);const li=[...document.querySelectorAll('#layer .sheet li')].map(x=>x.textContent).join(' ');speakEx("Examiner's instructions. "+li);};
 })();
