@@ -5,9 +5,9 @@ const LIMIT = Number(process.env.HOURLY_LIMIT || 30);
 async function gemini(prompt) {
   const key = process.env.GEMINI_API_KEY; if (!key) throw new Error('nokey');
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL || 'gemini-2.5-flash'}:generateContent`, {
-    method: 'POST',
+    method: 'POST', signal: AbortSignal.timeout(12000),
     headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4000 } })
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4000, thinkingConfig: { thinkingBudget: 0 } } })
   });
   if (!r.ok) throw new Error('gemini ' + r.status);
   const d = await r.json();
@@ -19,7 +19,7 @@ async function gemini(prompt) {
 async function groq(prompt) {
   const key = process.env.GROQ_API_KEY; if (!key) throw new Error('nokey');
   const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
+    method: 'POST', signal: AbortSignal.timeout(12000),
     headers: { 'content-type': 'application/json', authorization: 'Bearer ' + key },
     body: JSON.stringify({ model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: prompt }], response_format: { type: 'json_object' }, max_tokens: 4000 })
   });
