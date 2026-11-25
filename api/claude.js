@@ -1,6 +1,6 @@
 // Vercel function: tries Gemini first, then Groq if Gemini fails or runs out. Keys stay private.
 const hits = new Map();
-const LIMIT = Number(process.env.HOURLY_LIMIT || 30);
+const LIMIT = Number(process.env.HOURLY_LIMIT || 60);
 
 async function gemini(prompt) {
   const key = process.env.GEMINI_API_KEY; if (!key) throw new Error('nokey');
