@@ -1012,7 +1012,7 @@ function rl(i,sk,task){const o=O[i%10],v=V[(i/10|0)%5],d=D[i%7],tm=(6+i%5)+' p.m
  const pp=pass.split('\n\n');
  const script=task.spk===1?[{speaker:'Announcer',text:pp[0]+' '+pp[1].replace('555-'+ph,'555, '+spoken)}]:[{speaker:'Caller',text:`Hello, I'm calling about ${v} at ${o}.`},{speaker:'Clerk',text:`Of course. They start on ${d}, ${mo}. Sessions begin at ${tm}.`},{speaker:'Caller',text:'How much does it cost?'},{speaker:'Clerk',text:`It costs ${pr} dollars per person, and each session is limited to ${n} participants.`},{speaker:'Caller',text:'Do I need to register?'},{speaker:'Clerk',text:`Yes, in advance. Please call ${nm}. The number is 5 5 5, ${spoken}.`},{speaker:'Caller',text:'Thank you very much.'}];
  return {title:`${o}: ${v}`,script,questions:q.filter(x=>x.skill!=='spelling'||true)};}
-fallback=function(task){const sk=S.skill,key=[sk,P.exam,P.module,task.id].join('|');P.bi=P.bi||{};const i=(P.bi[key]=(P.bi[key]||0)+1)-1;saveP();const N=P.exam==='IELTS'?30:50,t=T[i%N];
+fallback=function(task){const sk=S.skill,key=[sk,P.exam,P.module,task.id].join('|');P.bi=P.bi||{};const i=(P.bi[key]=(P.bi[key]||0)+1)-1+(S.mockOff||0);saveP();const N=P.exam==='IELTS'?30:50,t=T[i%N];
  if(sk==='writing')return wr(t,i);if(sk==='speaking')return {prompts:sp(t,i)};return rl(i%N,sk,task);};
 
 
@@ -1064,8 +1064,16 @@ window.mockRules=function(){const n=($('#mn')||{}).value||'';if(!n.trim()){$('#m
  const v=(document.querySelector('input[name=ms]:checked')||{}).value||'all';M.secs=v==='all'?SEC:[v];
  mk(`${say(`Thank you, ${esc(M.name)}. Please listen carefully to the exam rules.`)}<div style="${CARD}"><ol style="line-height:1.8;padding-left:22px;margin:0"><li>Every part is timed. When time ends, your answers are submitted automatically.</li><li>You cannot go back or pause once a part begins.</li><li>Listening recordings play <b>once only</b>.</li><li>Pasting is disabled. Work alone, with no notes or dictionary.</li><li>Leaving this page is recorded and reported in your results.</li><li>You will get no feedback until the exam is finished.</li></ol></div>${btn('mockGo','I understand. Start the exam')}${btn('mockExit','Cancel',1)}`);};
 window.mockGo=function(){const ex=P.exam;P.exam='CELPIP';M.q=[];M.res={};
- M.secs.forEach(sk=>{S.skill=sk;getTasks(sk).forEach((t,k)=>{S.task=t;let it=fallback(t);if(sk==='reading'||sk==='listening')it=prepRL(it);M.q.push({sk,t,it,first:k===0});});});
- P.exam=ex;saveP();M.i=0;M.intro=false;show();};
+ let ix=0;const base=Math.floor(Math.random()*50);M.secs.forEach(sk=>{S.skill=sk;getTasks(sk).forEach((t,k)=>{S.task=t;S.mockOff=base+ix++*7;let it=fallback(t);if(sk==='reading'||sk==='listening')it=prepRL(it);M.q.push({sk,t,it,first:k===0});});});
+ S.mockOff=0;P.exam=ex;saveP();M.i=0;M.intro=false;prepare();};
+async function prepare(){const n=M.q.length;let got=0,closed=false;
+ mk(`${say('Kindly prepare for the exam. Your examiner is setting your questions now. Please wait quietly.')}<div style="${CARD};text-align:center"><div style="height:10px;border-radius:99px;background:var(--line);overflow:hidden"><i id="pb" style="display:block;height:100%;width:0;background:var(--brand);transition:width .4s"></i></div><p id="pc" class="muted">Setting questions: 0 of ${n}</p></div>`);
+ const upd=()=>{const b=$('#pb'),c=$('#pc');if(b)b.style.width=(100*got/n)+'%';if(c)c.textContent='Setting questions: '+got+' of '+n;};
+ const one=q=>new Promise(res=>{const to=setTimeout(res,12000);let p;const ex=P.exam;
+  try{P.exam='CELPIP';S.skill=q.sk;S.task=q.t;p=generate(q.t);}catch(e){p=Promise.reject(e);}finally{P.exam=ex;}
+  Promise.resolve(p).then(it=>{if(closed)return;const e2=P.exam;P.exam='CELPIP';try{if(q.sk==='reading'||q.sk==='listening')it=prepRL(it);}finally{P.exam=e2;}q.it=it;got++;upd();clearTimeout(to);res();}).catch(()=>{if(!closed){got++;upd();}clearTimeout(to);res();});});
+ await Promise.race([Promise.all(M.q.map(one)),new Promise(r=>setTimeout(r,16000))]);
+ closed=true;if(!M||!M.q)return;show();}
 function show(){stopTimer();stopSpeech();if(M.i>=M.q.length)return results();const q=M.q[M.i],n=M.q.filter(x=>x.sk===q.sk);const pos=n.indexOf(q)+1;
  if(q.first&&!M.intro){M.intro=true;const rule={listening:'Each recording plays once. Answer the questions that follow.',reading:'Read the text and answer all questions before time runs out.',writing:'Write your response in the box. Spellcheck is off.',speaking:'You will have preparation time, then speak. Your answer is captured once.'}[q.sk];
   return mk(`${say(`${NAME[q.sk]} section. ${n.length} parts. ${rule}`)}${btn('mockPart','Begin '+NAME[q.sk]+' section')}`);}
