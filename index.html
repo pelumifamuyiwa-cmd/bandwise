@@ -1055,7 +1055,7 @@ const lvl=p=>p>=90?12:p>=85?11:p>=78?10:p>=70?9:p>=62?8:p>=52?7:p>=42?6:p>=32?5:
 function mk(h){let m=document.getElementById('mock');if(!m){m=document.createElement('div');m.id='mock';m.style.cssText='position:fixed;inset:0;z-index:999;overflow:auto;background:var(--bg);color:var(--ink);font-family:var(--body);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)';document.body.appendChild(m);}
  m.innerHTML=`<div style="max-width:760px;margin:0 auto;padding:18px">${h}</div>`;m.scrollTop=0;}
 function close(){stopTimer();stopSpeech();try{rec&&rec.stop();}catch(e){}const m=document.getElementById('mock');if(m)m.remove();M=null;render(true);}
-const say=t=>`<div style="display:flex;gap:12px;align-items:center">${bandy('happy',64)}<div style="${CARD};margin:0;flex:1;font-weight:700">${t}</div></div>`;
+const say=t=>{speakEx(plain(t));return `<div style="display:flex;gap:12px;align-items:center">${bandy('happy',64)}<div style="${CARD};margin:0;flex:1;font-weight:700">${t}</div></div>`;};
 const bar=(l)=>`<div style="display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:10px"><span>CELPIP · ${l}</span><span id="mt" style="font-family:var(--disp);font-size:22px">--:--</span></div>`;
 const btn=(a,t,g)=>`<button class="btn ${g?'ghost':''} block" data-act="${a}" style="margin-top:10px">${t}</button>`;
 window.mockStart=function(){M={name:P.name||'',strikes:0};
@@ -1074,7 +1074,7 @@ window.mockPart=function(){M.intro=true;part(M.q[M.i],M.q.filter(x=>x.sk===M.q[M
 function forms(qs){return qs.map((q,k)=>`<div style="${CARD}"><b>${k+1}. ${esc(q.q)}</b>${q.type==='fill'?`<input id="f${k}" style="${INP};margin-top:8px" autocomplete="off" placeholder="Your answer">`:q.options.map((o,j)=>`<label style="display:block;padding:6px 0"><input type="radio" name="q${k}" value="${j}"> ${esc(o)}</label>`).join('')}</div>`).join('');}
 function score(q){const qs=q.it.qs;let ok=0;qs.forEach((x,k)=>{if(x.type==='fill'){if(x.accept.includes(norm(($('#f'+k)||{}).value||'')))ok++;}else{const r=document.querySelector(`input[name=q${k}]:checked`);if(r&&Number(r.value)===x.correct)ok++;}});return {ok,n:qs.length};}
 function done(r){stopTimer();stopSpeech();try{rec&&rec.stop();}catch(e){}(M.res[M.q[M.i].sk]=M.res[M.q[M.i].sk]||[]).push(r);M.i++;M.intro=false;show();}
-function part(q,pos,tot){const l=`${NAME[q.sk]} · Part ${pos} of ${tot}`,t=q.t;
+function part(q,pos,tot){speakEx(NAME[q.sk]+', part '+pos+' of '+tot);const l=`${NAME[q.sk]} · Part ${pos} of ${tot}`,t=q.t;
  const nopaste=`onpaste="return false" ondrop="return false" spellcheck="false" autocomplete="off" autocorrect="off"`;
  const submit=()=>{M.fin=()=>done(q.sk==='reading'||q.sk==='listening'?score(q):{p:q.it.prompt,x:($('#mx')||{}).value||''});};
  if(q.sk==='reading'){mk(`${bar(l)}<div style="${CARD};white-space:pre-wrap;line-height:1.6"><b>${esc(q.it.title||'')}</b>\n\n${esc(q.it.passage)}</div>${forms(q.it.qs)}${btn('mockSub','Submit part')}`);submit();startTimer(t.min*60,'#mt',()=>M.fin());}
@@ -1102,6 +1102,18 @@ const tl=tabLearn;tabLearn=function(){return `<div style="${CARD};display:flex;g
 render();
 })();
 
+/* ---- spoken examiner voice ---- */
+var VX={unlocked:false,pending:'',key:''};
+function plain(h){const d=document.createElement('div');d.innerHTML=String(h);return (d.textContent||'').replace(/\s+/g,' ').trim();}
+function speakEx(text){if(!text||P.voice===false||!window.speechSynthesis)return;
+ if(!VX.unlocked){VX.pending=text;return;}
+ try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);const vs=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));
+  u.voice=vs.find(v=>/natural|google|samantha|aria|jenny/i.test(v.name))||vs.find(v=>/en-(CA|GB|US)/i.test(v.lang))||null;u.lang=(u.voice&&u.voice.lang)||'en-US';u.rate=.95;speechSynthesis.speak(u);}catch(e){}}
+document.addEventListener('pointerdown',()=>{if(!VX.unlocked){VX.unlocked=true;if(VX.pending){const t=VX.pending;VX.pending='';speakEx(t);}}},{capture:true});
+(function(){const b=document.createElement('button');b.setAttribute('aria-label','Toggle examiner voice');b.style.cssText='position:fixed;left:12px;bottom:12px;z-index:1001;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:20px;cursor:pointer';
+ const up=()=>{b.textContent=P.voice===false?'🔇':'🔊';};up();b.onclick=()=>{P.voice=P.voice===false;saveP();up();if(P.voice===false)try{speechSynthesis.cancel();}catch(e){}else speakEx('Examiner voice is on.');};document.body.appendChild(b);})();
+const _vo=viewOnboard;viewOnboard=function(){const h=_vo();const d=document.createElement('div');d.innerHTML=h;const li=[...d.querySelectorAll('li')].map(x=>x.textContent).join('. ');const t=((d.querySelector('.bubble')||{}).textContent||'')+' '+li;const k=S.ob.step+'|'+P.exam;if(k!==VX.key){VX.key=k;speakEx(t);}return h;};
+const _ss=startSheet;startSheet=function(sk,t){_ss(sk,t);const li=[...document.querySelectorAll('#layer .sheet li')].map(x=>x.textContent).join(' ');speakEx("Examiner's instructions. "+li);};
 })();
 </script>
 
