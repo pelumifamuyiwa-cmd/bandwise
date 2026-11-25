@@ -1076,14 +1076,14 @@ function score(q){const qs=q.it.qs;let ok=0;qs.forEach((x,k)=>{if(x.type==='fill
 function done(r){stopTimer();stopSpeech();try{rec&&rec.stop();}catch(e){}(M.res[M.q[M.i].sk]=M.res[M.q[M.i].sk]||[]).push(r);M.i++;M.intro=false;show();}
 function part(q,pos,tot){speakEx(NAME[q.sk]+', part '+pos+' of '+tot);const l=`${NAME[q.sk]} · Part ${pos} of ${tot}`,t=q.t;
  const nopaste=`onpaste="return false" ondrop="return false" spellcheck="false" autocomplete="off" autocorrect="off"`;
- const submit=()=>{M.fin=()=>done(q.sk==='reading'||q.sk==='listening'?score(q):{p:q.it.prompt,x:($('#mx')||{}).value||''});};
+ const submit=()=>{M.fin=()=>{if(M.busy)return;if(q.sk==='speaking'&&RECX.on){M.busy=true;const ph=$('#ph');if(ph)ph.textContent='Transcribing…';RECX.stop().then(tx=>{M.busy=false;const x=$('#mx');if(x&&tx)x.value=((x.value||'')+' '+tx).trim();done({p:q.it.prompt,x:(x||{}).value||''});});return;}done(q.sk==='reading'||q.sk==='listening'?score(q):{p:q.it.prompt,x:($('#mx')||{}).value||''});};};
  if(q.sk==='reading'){mk(`${bar(l)}<div style="${CARD};white-space:pre-wrap;line-height:1.6"><b>${esc(q.it.title||'')}</b>\n\n${esc(q.it.passage)}</div>${forms(q.it.qs)}${btn('mockSub','Submit part')}`);submit();startTimer(t.min*60,'#mt',()=>M.fin());}
  else if(q.sk==='listening'){mk(`${bar(l)}<div style="${CARD}"><b>${esc(t.name)}</b><p>The recording plays once. You cannot replay it.</p><button class="btn block" id="pl" data-act="mockPlay">Play recording</button></div><div id="lq"></div>`);M.cur=q;submit();}
  else if(q.sk==='writing'){mk(`${bar(l)}<div style="${CARD};white-space:pre-wrap">${esc(q.it.prompt)}</div><textarea id="mx" ${nopaste} style="${INP};min-height:300px"></textarea><div id="wc" class="muted" style="margin:6px 0">0 words · Minimum ${t.words[0]}</div>${btn('mockSub','Submit response')}`);
   $('#mx').oninput=()=>{$('#wc').textContent=words($('#mx').value)+' words · Minimum '+t.words[0];};submit();startTimer(t.min*60,'#mt',()=>M.fin());}
  else{const p=q.it.prompts[0];mk(`${bar(l)}<div style="${CARD};white-space:pre-wrap">${esc(p)}</div><p id="ph" style="font-weight:800">Preparation time</p><textarea id="mx" disabled ${nopaste} placeholder="Your spoken answer is captured here. If your microphone is unavailable, type it." style="${INP};min-height:140px"></textarea><div id="sb">${btn('mockSub','Finish answer')}</div>`);$('#sb').hidden=true;
   q.it.prompt=p;submit();startTimer(t.prep,'#mt',()=>{$('#ph').textContent='Speak now';const x=$('#mx');x.disabled=false;x.focus();$('#sb').hidden=false;
-   if(SR){try{rec=new SR();rec.lang='en-CA';rec.continuous=true;rec.interimResults=false;rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)x.value+=(x.value?' ':'')+e.results[i][0].transcript;};rec.start();}catch(e){}}
+   if(SR&&!SAF){try{rec=new SR();rec.lang='en-CA';rec.continuous=true;rec.interimResults=false;rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)x.value+=(x.value?' ':'')+e.results[i][0].transcript;};rec.onend=()=>{if(M&&M.fin&&!x.disabled&&document.body.contains(x)){try{rec.start();}catch(e){}}};rec.start();}catch(e){}}else if(RECX.ok){RECX.start().catch(()=>{});}
    startTimer(t.speak,'#mt',()=>M.fin());});}}
 window.mockSub=()=>{if(M&&M.fin)M.fin();};
 window.mockPlay=function(){const q=M.cur,b=$('#pl');b.disabled=true;b.textContent='Playing… (once only)';
@@ -1115,6 +1115,41 @@ document.addEventListener('pointerdown',()=>{if(!VX.unlocked){VX.unlocked=true;i
 document.addEventListener('change',e=>{if(e.target&&e.target.id==='vox'){P.voice=e.target.checked;saveP();if(!P.voice)try{speechSynthesis.cancel();}catch(x){}}});
 const _vo=viewOnboard;viewOnboard=function(){const h=_vo();const d=document.createElement('div');d.innerHTML=h;const li=[...d.querySelectorAll('li')].map(x=>x.textContent).join('. ');const t=((d.querySelector('.bubble')||{}).textContent||'')+' '+li;const k=S.ob.step+'|'+P.exam;if(k!==VX.key){VX.key=k;speakEx(t);}return h;};
 const _ss=startSheet;startSheet=function(sk,t){_ss(sk,t);const li=[...document.querySelectorAll('#layer .sheet li')].map(x=>x.textContent).join(' ');speakEx("Examiner's instructions. "+li);};
+/* ---- voice input: browser recognition (Chrome/Edge) or recording + server transcription (Safari/Firefox) ---- */
+var SAF=/^((?!chrome|chromium|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+var RECX={on:false,rec:null,chunks:[],stream:null,ok:!!(window.MediaRecorder&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)};
+RECX.start=async function(){const st=await navigator.mediaDevices.getUserMedia({audio:true});RECX.stream=st;
+ const mt=['audio/mp4','audio/webm;codecs=opus','audio/webm'].find(t=>MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t))||'';
+ const r=new MediaRecorder(st,mt?{mimeType:mt,audioBitsPerSecond:32000}:{});RECX.chunks=[];r.ondataavailable=e=>{if(e.data&&e.data.size)RECX.chunks.push(e.data);};r.start(1000);RECX.rec=r;RECX.on=true;};
+RECX.stop=function(skip){return new Promise(res=>{const r=RECX.rec;RECX.on=false;const off=()=>{try{RECX.stream&&RECX.stream.getTracks().forEach(t=>t.stop());}catch(e){}};
+ if(!r||r.state==='inactive'){off();return res('');}
+ r.onstop=async()=>{off();const blob=new Blob(RECX.chunks,{type:r.mimeType||'audio/mp4'});if(skip||blob.size<2000)return res('');
+  try{const b64=await new Promise((ok,no)=>{const f=new FileReader();f.onload=()=>ok(String(f.result).split(',')[1]);f.onerror=no;f.readAsDataURL(blob);});
+   const resp=await fetch('/api/transcribe',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({audio:b64,type:blob.type})});
+   const d=await resp.json();res((d&&d.text)||'');}catch(e){res('');}};
+ try{r.stop();}catch(e){off();res('');}});};
+if(!dict){const SRX=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(SRX&&!SAF){
+ const cb={p:()=>{},f:()=>{},s:()=>{}};let r=null,want=false;
+ dict={onPartial:f=>{cb.p=f;},onFinal:f=>{cb.f=f;},onState:f=>{cb.s=f;},
+  start(){return new Promise((res,rej)=>{want=true;r=new SRX();r.lang='en-CA';r.continuous=true;r.interimResults=true;
+   r.onstart=()=>{cb.s({state:'listening'});res();};
+   r.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){want=false;rej(e);}};
+   r.onresult=e=>{let fin='',itm='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)fin+=t;else itm+=t;}if(fin.trim())cb.f({text:fin.trim()});else if(itm.trim())cb.p({text:itm.trim()});};
+   r.onend=()=>{cb.s({state:'idle'});if(want){try{r.start();}catch(x){}}};
+   try{r.start();}catch(x){rej(x);}});},
+  stop(){want=false;return new Promise(res=>{if(!r)return res();const t=setTimeout(res,700);r.onend=()=>{clearTimeout(t);cb.s({state:'idle'});res();};try{r.stop();}catch(x){clearTimeout(t);res();}});}};
+ }else if(RECX.ok){
+ const cb={f:()=>{},s:()=>{}};
+ dict={onPartial:()=>{},onFinal:f=>{cb.f=f;},onState:f=>{cb.s=f;},
+  start(){return RECX.start().then(()=>cb.s({state:'listening'}));},
+  async stop(){const m=$('#mic');if(m&&RECX.on)m.textContent='Transcribing…';const t=await RECX.stop(!S.sp);if(t)cb.f({text:t});cb.s({state:'idle'});}};
+ }
+ if(dict){
+ dict.onPartial(({text})=>{const sp=S.sp,ta=$('#ta');if(!sp||sp.phase!=='speak'||!ta)return;act();ta.value=((sp.base||'')+' '+text).trim();});
+ dict.onFinal(({text})=>{const sp=S.sp,ta=$('#ta');if(!sp||sp.phase!=='speak'||!ta)return;act();sp.base=((sp.base||'')+' '+text).trim();ta.value=sp.base;});
+ dict.onState(({state})=>{const m=$('#mic');if(m)m.textContent=state==='listening'?'Listening':'Mic off';});
+ }}
 })();
 </script>
 
