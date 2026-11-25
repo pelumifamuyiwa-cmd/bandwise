@@ -1,0 +1,1110 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Bandwise</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800&display=swap">
+<style>
+/* Layout: three-column app shell (rail, learning path, stats) on desktop; top chips + tab bar on phones. Lessons run full-screen with a pinned action bar. Exam = brand colour, skill = lesson colour. */
+:root{
+  --bg:#f3f5fb;--surface:#ffffff;--ink:#1d2236;--mut:#657090;--line:#e1e5f1;
+  --brand:#2f6bff;--brand-d:#1f4fc4;
+  --c:var(--brand);--cd:var(--brand-d);
+  --good:#1f9d57;--bad:#e03e45;--gold:#ffb21e;--gold-d:#d99410;--flame:#ff7a1a;
+  --disp:'Fredoka','Nunito',system-ui,sans-serif;--body:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color-scheme:light}
+:root[data-exam="IELTS"]{--brand:#e5334b;--brand-d:#b61f35}
+@media (prefers-color-scheme:dark){
+:root:not([data-theme="light"]){--bg:#0d1120;--surface:#171c2f;--ink:#eef0f9;--mut:#9ba5c6;--line:#283049;--brand:#5b8cff;--brand-d:#3a63cc;--good:#3ddc84;--bad:#ff6b70;--gold:#ffc24a;--gold-d:#c8901b;color-scheme:dark}
+:root:not([data-theme="light"])[data-exam="IELTS"]{--brand:#ff5a6e;--brand-d:#c93a4c}}
+:root[data-theme="dark"]{--bg:#0d1120;--surface:#171c2f;--ink:#eef0f9;--mut:#9ba5c6;--line:#283049;--brand:#5b8cff;--brand-d:#3a63cc;--good:#3ddc84;--bad:#ff6b70;--gold:#ffc24a;--gold-d:#c8901b;color-scheme:dark}
+:root[data-theme="dark"][data-exam="IELTS"]{--brand:#ff5a6e;--brand-d:#c93a4c}
+[data-skill="listening"]{--sk:#1fa4ee;--sk-d:#1480b9;--c:var(--sk);--cd:var(--sk-d)}
+[data-skill="reading"]{--sk:#8b5cf6;--sk-d:#6a3fd1;--c:var(--sk);--cd:var(--sk-d)}
+[data-skill="writing"]{--sk:#ff7a3d;--sk-d:#d65a22;--c:var(--sk);--cd:var(--sk-d)}
+[data-skill="speaking"]{--sk:#14b58d;--sk-d:#0e8c6d;--c:var(--sk);--cd:var(--sk-d)}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:500 16px/1.5 var(--body);-webkit-font-smoothing:antialiased;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+h1,h2,h3{font-family:var(--disp);font-weight:600;margin:0;text-wrap:balance}
+h1{font-size:30px;line-height:1.15}h2{font-size:21px;line-height:1.25}h3{font-size:18px}
+p{margin:0}
+.muted{color:var(--mut);font-size:14px}
+button{font:inherit;color:inherit;cursor:pointer}
+svg.ic{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+svg.ic.f{fill:currentColor;stroke:none}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--c) 65%,#fff);outline-offset:2px}
+.fl{color:var(--flame)}.gd{color:var(--gold)}
+
+/* app shell */
+.app{display:grid;grid-template-columns:232px minmax(0,580px) 320px;gap:24px;justify-content:center;max-width:1200px;margin:0 auto;align-items:start}
+.rail{position:sticky;top:env(safe-area-inset-top,0px);display:flex;flex-direction:column;gap:6px;padding:16px 0}
+.logo{display:flex;align-items:center;gap:8px;padding:0 10px 14px;font:700 27px var(--disp);color:var(--brand)}
+.logo svg.bandy{width:40px;height:40px}
+.rn{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:14px;border:2px solid transparent;background:none;color:var(--mut);font:700 16px var(--body);text-align:left;width:100%}
+.rn:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.rn.on{color:var(--brand);background:color-mix(in srgb,var(--brand) 12%,var(--surface));border-color:color-mix(in srgb,var(--brand) 50%,transparent)}
+.center{min-width:0;padding:16px 0 110px}
+.side{position:sticky;top:env(safe-area-inset-top,0px);display:flex;flex-direction:column;gap:14px;padding:16px 0}
+.tb{display:none;align-items:center;gap:8px;margin-bottom:14px}
+.tb .sp,.sk-row .sp{flex:1}
+.only-m{display:none}
+.bnav{display:none;position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:2px solid var(--line);padding:6px max(10px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));justify-content:space-around;gap:4px}
+.bnav button{flex:1;border:2px solid transparent;background:none;border-radius:12px;padding:7px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;font:700 12px var(--body);color:var(--mut)}
+.bnav button.on{color:var(--brand);background:color-mix(in srgb,var(--brand) 12%,var(--surface));border-color:color-mix(in srgb,var(--brand) 45%,transparent)}
+@media (max-width:1100px){
+.app{grid-template-columns:72px minmax(0,640px)}
+.side{display:none}.rn span,.logo span{display:none}.rn{justify-content:center;padding:12px}.logo{padding:0 0 14px;justify-content:center}
+.tb{display:flex}.only-m{display:block}}
+@media (max-width:760px){
+.app{grid-template-columns:minmax(0,1fr)}.rail{display:none}.bnav{display:flex}.center{padding-top:12px}h1{font-size:26px}}
+
+/* chips and cards */
+.chipx{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font:600 17px var(--disp);color:var(--ink);font-variant-numeric:tabular-nums}
+.chipx svg.ic{width:20px;height:20px}
+button.chipx:hover{border-color:var(--brand)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--brand)}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.card h3{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.gbar{height:14px;background:var(--line);border-radius:99px;overflow:hidden}
+.gbar i{display:block;height:100%;background:var(--gold);border-radius:99px;transition:width .4s;position:relative}
+.gbar i::after{content:"";position:absolute;left:7px;right:7px;top:3px;height:3px;border-radius:3px;background:rgba(255,255,255,.45)}
+.sk-row{display:flex;gap:8px}
+.wk{display:flex;justify-content:space-between;gap:4px}
+.wk div{display:flex;flex-direction:column;align-items:center;gap:4px;font:700 12px var(--body);color:var(--mut)}
+.wk i{width:26px;height:26px;border-radius:50%;background:var(--line);display:grid;place-items:center;color:#fff}
+.wk i.on{background:var(--flame)}
+.wk i svg{width:15px;height:15px}
+.big{font:600 34px/1 var(--disp)}
+.note{background:color-mix(in srgb,var(--gold) 18%,var(--surface));border:2px solid color-mix(in srgb,var(--gold) 55%,transparent);border-radius:14px;padding:10px 14px;font-size:14px;font-weight:600;margin-bottom:14px}
+
+/* buttons */
+.btn{--c:var(--brand);--cd:var(--brand-d);display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:14px 22px;background:var(--c);color:#fff;font:700 16px/1.1 var(--body);box-shadow:0 4px 0 var(--cd);transition:transform .06s,box-shadow .06s;min-height:50px}
+[data-skill] .btn,.abar .btn{--c:var(--sk,var(--brand));--cd:var(--sk-d,var(--brand-d))}
+.btn:active{transform:translateY(4px);box-shadow:0 0 0 var(--cd)}
+.btn.ghost{background:var(--surface);color:var(--ink);box-shadow:0 0 0 2px var(--line),0 4px 0 2px var(--line)}
+.btn.ghost:active{box-shadow:0 0 0 2px var(--line),0 0 0 2px var(--line)}
+.btn.sm{padding:9px 14px;min-height:40px;font-size:14px}
+.btn.block{width:100%}
+.btn:disabled{background:var(--line);color:var(--mut);box-shadow:none;cursor:not-allowed;transform:none}
+.sub{color:var(--mut);margin-top:4px}
+
+/* learning path */
+.unit{margin-bottom:6px}
+.uh{position:sticky;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:6;display:flex;gap:12px;align-items:center;justify-content:space-between;background:var(--sk);color:#fff;border-radius:18px;padding:14px 16px;box-shadow:0 4px 0 var(--sk-d)}
+.uh small{font-weight:700;opacity:.92;font-size:13px}
+.uh h2{color:#fff;font-size:22px}
+.uh p{font-size:13px;opacity:.95;font-weight:600}
+.uh .tipb{background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.55);color:#fff;border-radius:12px;padding:9px 12px;font:700 14px var(--body);display:flex;gap:6px;align-items:center;flex:none}
+.path{display:flex;flex-direction:column;align-items:center;gap:46px;padding:48px 0 40px}
+.pn{display:flex;flex-direction:column;align-items:center;gap:8px;width:180px;text-align:center;transform:translateX(var(--dx,0px))}
+.nw{position:relative}
+.node{width:80px;height:80px;border-radius:50%;border:0;background:var(--sk);box-shadow:0 7px 0 var(--sk-d);display:grid;place-items:center;color:#fff;position:relative;transition:transform .08s,box-shadow .08s}
+.node svg.ic{width:34px;height:34px;stroke-width:2.2}
+.node:active{transform:translateY(5px);box-shadow:0 2px 0 var(--sk-d)}
+.node.done{background:var(--gold);box-shadow:0 7px 0 var(--gold-d)}
+.node.done:active{box-shadow:0 2px 0 var(--gold-d)}
+.node.next::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:5px solid color-mix(in srgb,var(--sk) 28%,transparent);pointer-events:none}
+.bub{position:absolute;bottom:calc(100% + 18px);left:50%;translate:-50% 0;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:6px 14px;font:600 16px var(--disp);color:var(--ink);white-space:nowrap;animation:bob 1.6s ease-in-out infinite;pointer-events:none}
+.bub::after{content:"";position:absolute;left:50%;bottom:-8px;width:12px;height:12px;background:var(--surface);border-right:2px solid var(--line);border-bottom:2px solid var(--line);transform:translateX(-50%) rotate(45deg)}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.cap{font:700 14px/1.25 var(--body);color:var(--mut)}
+.stars{display:flex;gap:2px}.stars svg{width:16px;height:16px}
+.stars svg.off{color:var(--line)}.stars svg.on{color:var(--gold)}
+
+/* sheets */
+.scrim{position:fixed;inset:0;z-index:70;background:rgba(10,14,30,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:min(520px,100%);border-radius:24px 24px 0 0;padding:22px max(20px,env(safe-area-inset-left,0px)) calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;animation:up .22s ease-out;max-height:92%;overflow:auto}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+@media (min-width:760px){.scrim{align-items:center}.sheet{border-radius:24px}}
+.sh-h{display:flex;gap:14px;align-items:center}
+.badge-sk{width:54px;height:54px;border-radius:50%;background:var(--sk,var(--brand));color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 4px 0 var(--sk-d,var(--brand-d))}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:700 13px var(--body);padding:4px 11px;border-radius:99px;background:color-mix(in srgb,var(--ink) 7%,var(--surface));color:var(--mut)}
+.chip.gold{background:color-mix(in srgb,var(--gold) 22%,var(--surface));color:var(--ink)}
+.pick{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 16px;border:2px solid var(--line);border-bottom-width:4px;border-radius:16px;background:var(--surface);font-weight:700}
+.pick:hover{background:color-mix(in srgb,var(--brand) 6%,var(--surface))}
+.pick.on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 12%,var(--surface))}
+.pick small{display:block;color:var(--mut);font-weight:600}
+.pick b{font:600 19px var(--disp)}
+.pgrid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:10px}
+.pgrid2 .pick{flex-direction:column;align-items:center;text-align:center;gap:2px;padding:12px 6px}
+
+/* practice */
+.pt{margin-bottom:6px}
+.pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0 14px}
+.ptile{border:0;border-radius:20px;background:var(--sk);color:#fff;padding:18px 16px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;box-shadow:0 5px 0 var(--sk-d);text-align:left;min-height:132px;transition:transform .06s,box-shadow .06s}
+.ptile:active{transform:translateY(5px);box-shadow:0 0 0 var(--sk-d)}
+.ptile .pi{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.22);display:grid;place-items:center;margin-bottom:6px}
+.ptile b{font:600 20px var(--disp)}.ptile small{font-weight:700;opacity:.95}
+.stack{display:flex;flex-direction:column;gap:12px}
+
+/* progress and profile */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal i{aspect-ratio:1;border-radius:8px;background:var(--line);display:block}
+.cal i.l1{background:color-mix(in srgb,var(--flame) 35%,var(--surface))}
+.cal i.l2{background:color-mix(in srgb,var(--flame) 65%,var(--surface))}
+.cal i.l3{background:var(--flame)}
+.cal i.f{background:none}.cal i.t{outline:2px solid var(--ink);outline-offset:1px}
+.cal b{text-align:center;font:700 12px var(--body);color:var(--mut)}
+.sgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.scard{display:flex;flex-direction:column;gap:6px}
+.scard .hd{display:flex;align-items:center;gap:10px}
+.scard .badge-sk{width:38px;height:38px;box-shadow:none}
+.scard .badge-sk svg.ic{width:20px;height:20px}
+.spark{width:100%;height:34px;color:var(--sk)}
+.tgt{display:flex;flex-direction:column;gap:12px}
+.tgt .row{display:grid;grid-template-columns:86px 1fr 44px;gap:10px;align-items:center;font-weight:700;font-size:14px}
+.tgt .tr{position:relative;height:14px;background:var(--line);border-radius:99px}
+.tgt .tr i{display:block;height:100%;border-radius:99px;background:var(--sk)}
+.tgt .tr s{position:absolute;top:-4px;bottom:-4px;width:3px;background:var(--ink);border-radius:2px;text-decoration:none}
+.bars .row{display:grid;grid-template-columns:110px 1fr 30px;gap:10px;align-items:center;font-weight:700;font-size:14px}
+.bars .tr{height:12px;background:var(--line);border-radius:99px;overflow:hidden}.bars .tr i{display:block;height:100%;background:var(--brand);border-radius:99px}
+.prow{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-top:2px solid var(--line)}
+.prow:first-of-type{border-top:0}
+.setrow{display:flex;flex-direction:column;gap:10px}
+.setrow>b{font:600 17px var(--disp)}
+.date{padding:12px 14px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:600 16px var(--body);width:100%}
+.sw{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:700}
+.sw input{appearance:none;width:52px;height:30px;border-radius:99px;background:var(--line);position:relative;cursor:pointer;margin:0;flex:none;transition:background .15s}
+.sw input::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .15s}
+.sw input:checked{background:var(--good)}.sw input:checked::after{transform:translateX(22px)}
+
+/* lesson */
+.lesson{max-width:1080px;margin:0 auto;padding-bottom:170px}
+.lh{display:flex;align-items:center;gap:14px;padding:14px 0;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+.x{border:0;background:none;color:var(--mut);padding:6px;border-radius:10px;display:grid;place-items:center}
+.x:hover{color:var(--ink)}
+.pbar{flex:1;height:16px;background:var(--line);border-radius:99px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--sk);border-radius:99px;transition:width .35s;position:relative;min-width:0}
+.pbar i::after{content:"";position:absolute;left:8px;right:8px;top:4px;height:4px;border-radius:4px;background:rgba(255,255,255,.38)}
+.tchip{display:flex;gap:6px;align-items:center;font:600 18px var(--disp);font-variant-numeric:tabular-nums;color:var(--mut);background:var(--surface);border:2px solid var(--line);border-radius:99px;padding:3px 12px}
+.tchip svg.ic{width:18px;height:18px}
+.timer.warn,.tchip:has(.warn){color:var(--bad);border-color:var(--bad)}
+.lsplit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+.seg{display:none;gap:6px;padding:5px;background:var(--surface);border:2px solid var(--line);border-radius:14px;margin-bottom:14px}
+.seg button{flex:1;border:0;background:none;padding:9px;border-radius:10px;font-weight:700;color:var(--mut)}
+.seg button.on{background:var(--sk);color:#fff}
+.pcard{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.ppane .pcard{max-height:calc(100vh - 250px);overflow:auto}
+.passage{font-size:17px;line-height:1.7;white-space:pre-wrap}
+.qpane{padding:6px 2px;display:flex;flex-direction:column}
+.qmeta{font-weight:700;color:var(--mut);font-size:14px;margin-bottom:6px}
+.qtext{font:600 23px/1.3 var(--disp);margin-bottom:8px}
+.opt{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:14px 16px;border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;background:var(--surface);margin-top:10px;font-weight:600;color:var(--ink)}
+.opt:hover:not(:disabled){background:color-mix(in srgb,var(--sk) 8%,var(--surface))}
+.opt .k{width:28px;height:28px;border:2px solid var(--line);border-radius:8px;display:grid;place-items:center;font:700 13px var(--body);flex:none;color:var(--mut)}
+.opt.sel{border-color:var(--sk);background:color-mix(in srgb,var(--sk) 14%,var(--surface))}
+.opt.sel .k{background:var(--sk);border-color:var(--sk);color:#fff}
+.opt.right{border-color:var(--good);background:color-mix(in srgb,var(--good) 16%,var(--surface))}
+.opt.right .k{background:var(--good);border-color:var(--good);color:#fff}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,var(--surface))}
+.opt.wrong .k{background:var(--bad);border-color:var(--bad);color:#fff}
+.opt:disabled{cursor:default}
+.fill{width:100%;margin-top:12px;padding:16px;border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;background:var(--surface);color:var(--ink);font:600 18px var(--body)}
+.fill:focus{outline:0;border-color:var(--sk)}
+.player{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.playbtn{width:76px;height:76px;border-radius:50%;border:0;background:var(--sk);color:#fff;display:grid;place-items:center;box-shadow:0 6px 0 var(--sk-d)}
+.playbtn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--sk-d)}
+.playbtn:disabled{opacity:.55}
+.playbtn svg.ic{width:30px;height:30px;fill:currentColor;stroke:none}
+.eq{display:flex;gap:4px;align-items:flex-end;height:34px}.eq i{width:5px;height:7px;background:var(--line);border-radius:3px}
+.live .eq i{background:var(--sk);animation:eq 1s ease-in-out infinite}
+.live .eq i:nth-child(2){animation-delay:.15s}.live .eq i:nth-child(3){animation-delay:.3s}.live .eq i:nth-child(4){animation-delay:.45s}.live .eq i:nth-child(5){animation-delay:.6s}
+@keyframes eq{50%{height:32px}}
+.abar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:2px solid var(--line);padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.abar.ok{background:color-mix(in srgb,var(--good) 16%,var(--surface));border-color:transparent}
+.abar.no{background:color-mix(in srgb,var(--bad) 14%,var(--surface));border-color:transparent}
+.abar.ok .btn{--c:var(--good);--cd:color-mix(in srgb,var(--good) 68%,#000)}
+.abar.no .btn{--c:var(--bad);--cd:color-mix(in srgb,var(--bad) 68%,#000)}
+.ab-in{max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:14px}
+.fb-t{display:flex;gap:12px;align-items:flex-start;font-size:15px;min-width:0}
+.abar.ok .fb-t{color:var(--good)}.abar.no .fb-t{color:var(--bad)}
+.fb-t b{font:600 21px var(--disp);display:block}
+.fb-t span.tx{color:var(--ink);display:block;font-weight:600}
+.fb-t .tag{display:inline-block;margin-top:4px;font-size:12px;font-weight:700;color:var(--mut)}
+.wm{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.wm .gbar{height:10px}
+.wm .gbar i{background:var(--sk)}
+.wm .gbar i::after{display:none}
+textarea{width:100%;min-height:340px;padding:16px;border:2px solid var(--line);border-bottom-width:4px;border-radius:16px;background:var(--surface);color:var(--ink);font:500 17px/1.65 var(--body);resize:vertical}
+textarea:focus{outline:0;border-color:var(--sk)}
+pre.data{background:var(--bg);padding:12px;border-radius:12px;overflow:auto;font-size:14px;margin:0}
+.prompt{white-space:pre-wrap}
+.sticky{position:sticky;top:calc(env(safe-area-inset-top,0px) + 70px)}
+
+/* speaking */
+.spk{max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.say{display:flex;gap:16px;align-items:flex-start}
+.say svg.bandy{width:84px;height:84px;flex:none}
+.bubble{position:relative;flex:1;min-width:0;background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:16px 18px;font:600 20px/1.4 var(--disp);white-space:pre-wrap}
+.bubble::before{content:"";position:absolute;left:-10px;top:30px;width:16px;height:16px;background:var(--surface);border-left:2px solid var(--line);border-bottom:2px solid var(--line);transform:rotate(45deg)}
+.ctrl{text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.pill{display:inline-flex;gap:7px;align-items:center;padding:5px 14px;border-radius:99px;font-size:14px;font-weight:700;background:color-mix(in srgb,var(--sk) 16%,var(--surface))}
+.pill.rec{background:color-mix(in srgb,var(--bad) 16%,var(--surface));color:var(--bad)}
+.pill.prep{background:color-mix(in srgb,var(--gold) 24%,var(--surface))}
+.ring{width:176px;height:176px;border-radius:50%;display:grid;place-items:center;border:8px solid var(--line)}
+.ring .timer{font:600 42px var(--disp);font-variant-numeric:tabular-nums}
+.ring.prep{border-color:var(--gold)}
+.ring.speak{border-color:var(--bad);animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 12px color-mix(in srgb,var(--bad) 18%,transparent)}}
+.ctrl textarea{min-height:150px;text-align:left}
+
+/* results */
+.res{max-width:660px;margin:0 auto;padding:22px 0 150px;display:flex;flex-direction:column;gap:18px}
+.cele{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.cele svg.bandy{width:150px;height:150px}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tile{border:2px solid var(--c0);border-radius:16px;overflow:hidden;text-align:center;background:var(--surface)}
+.tile .th{background:var(--c0);color:#1d2236;font:800 13px var(--body);padding:5px 4px}
+.tile .tv{padding:14px 4px;font:600 28px var(--disp);display:flex;align-items:center;justify-content:center;gap:6px}
+.tile .tv svg.ic{width:24px;height:24px}
+.t-xp{--c0:var(--gold)}.t-lv{--c0:var(--sk)}.t-lv .th{color:#fff}.t-ac{--c0:var(--good)}.t-ac .th{color:#fff}
+.banner{display:flex;gap:14px;align-items:center;border:2px solid color-mix(in srgb,var(--flame) 55%,transparent);background:color-mix(in srgb,var(--flame) 12%,var(--surface));border-radius:18px;padding:14px 16px}
+.banner svg.ic{width:42px;height:42px}
+.banner b{font:600 20px var(--disp)}
+.tabs{display:flex;gap:6px;padding:5px;background:var(--surface);border:2px solid var(--line);border-radius:14px;overflow-x:auto}
+.tabs button{flex:1;border:0;background:none;padding:9px 12px;border-radius:10px;font-weight:700;color:var(--mut);white-space:nowrap}
+.tabs button.on{background:var(--sk);color:#fff}
+.ring2{position:relative;width:132px;height:132px;margin:0 auto}
+.ring2 svg{width:100%;height:100%}
+.ring2 circle{fill:none;stroke-width:10}.r0{stroke:var(--line)}.r1{stroke:var(--sk);stroke-linecap:round}
+.ring2 .sc{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring2 .sc b{font:600 38px/1 var(--disp)}.ring2 .sc span{font-size:12px;color:var(--mut);font-weight:700}
+.crit{display:flex;flex-direction:column;gap:5px}
+.crit .h{display:flex;justify-content:space-between;gap:10px;font-weight:700}
+.bar2{height:10px;background:var(--line);border-radius:99px;overflow:hidden}.bar2 i{display:block;height:100%;background:var(--sk);border-radius:99px}
+.counts{display:flex;gap:6px;flex-wrap:wrap}
+.cnt{font-size:13px;background:color-mix(in srgb,var(--bad) 14%,var(--surface));color:var(--bad);padding:3px 11px;border-radius:99px;font-weight:700}
+.err{background:var(--surface);border:2px solid var(--line);border-left:6px solid var(--bad);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.err .t{font-size:13px;font-weight:800;color:var(--bad)}
+.err .bad{text-decoration:line-through;text-decoration-color:var(--bad);color:var(--mut)}
+.err .fix{background:color-mix(in srgb,var(--good) 16%,var(--surface));padding:6px 10px;border-radius:9px;font-weight:700}
+.good{background:color-mix(in srgb,var(--good) 14%,var(--surface));border-radius:12px;padding:10px 14px;font-weight:600}
+.miss{background:color-mix(in srgb,var(--gold) 20%,var(--surface));border-radius:12px;padding:10px 14px}
+.ok{color:var(--good);font-weight:800}.no{color:var(--bad);font-weight:800}
+.steps{padding-left:22px;margin:6px 0;display:flex;flex-direction:column;gap:6px}
+.drill{border:2px solid var(--line);border-radius:14px;padding:12px 16px}
+.qrev{padding:12px 0;border-top:2px solid var(--line);display:flex;flex-direction:column;gap:3px}
+.qrev:first-of-type{border-top:0}
+details.card summary{cursor:pointer;font:600 18px var(--disp)}
+.fc{min-height:210px;justify-content:center;text-align:center;gap:14px}
+.fc .q{font:600 22px/1.4 var(--disp)}
+
+/* overlays */
+.load{position:fixed;inset:0;z-index:80;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px}
+.load svg.bandy{width:140px;height:140px;animation:bob 1.4s ease-in-out infinite}
+.load h2{max-width:320px}
+.dots{display:flex;gap:6px}.dots i{width:9px;height:9px;border-radius:50%;background:var(--brand);opacity:.3;animation:dd 1.2s infinite}
+.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+@keyframes dd{50%{opacity:1}}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:90}
+
+/* onboarding */
+.ob{max-width:560px;margin:0 auto;padding:18px 0 150px;display:flex;flex-direction:column;gap:20px}
+.ob .lh{position:static;padding:6px 0}
+.ob .pbar i{background:var(--brand)}
+@media (max-width:900px){
+.lsplit{grid-template-columns:1fr}.seg{display:flex}
+.lsplit[data-pane="q"] .ppane{display:none}.lsplit[data-pane="p"] .qpane{display:none}
+.ppane .pcard{max-height:none}.sticky{position:static}
+.sgrid{grid-template-columns:1fr}.tiles{gap:8px}.tile .tv{font-size:24px}
+.say svg.bandy{width:60px;height:60px}.bubble{font-size:18px}}
+@media (max-width:420px){.pn{width:150px}.pgrid{gap:10px}.ptile{padding:14px 12px}.bars .row{grid-template-columns:86px 1fr 28px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app"></div>
+<div id="layer"></div>
+<div id="load"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<script>
+(()=>{'use strict';
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s==null?'':s).toLowerCase().replace(/[^a-z0-9]/g,'');
+const words=t=>(String(t).trim().match(/\S+/g)||[]).length;
+const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+const reduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+const dk=ts=>new Date(ts).toLocaleDateString('en-CA');
+
+/* ---------- storage ---------- */
+const LSH='bw_hist_v1',LSP='bw_profile_v1',LSO='cp_hist_v1';
+function ldJ(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function svJ(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+let HIST=null;
+function hist(){if(!HIST){HIST=ldJ(LSH,null);if(!Array.isArray(HIST))HIST=ldJ(LSO,[]);if(!Array.isArray(HIST))HIST=[];}return HIST;}
+function addHist(e){hist().push(e);HIST=HIST.slice(-300);svJ(LSH,HIST);}
+const DEF={exam:'CELPIP',module:'Academic',target:{CELPIP:9,IELTS:7},goal:40,date:'',sound:true,onboarded:false};
+const P=Object.assign({},DEF,ldJ(LSP,{}));P.target=Object.assign({},DEF.target,P.target||{});
+const saveP=()=>svJ(LSP,P);
+
+/* ---------- capabilities ---------- */
+let sampleFn=null,dict=null;
+const S={tab:'learn',view:'home',skill:'listening',task:null,item:null,result:null,gain:null,note:'',recent:[],sp:null,rl:null,ob:{step:0},cap:false,rtab:'scores'};
+(async()=>{
+  try{if(window.claude&&claude.use){sampleFn=await claude.use('sample');}}catch(e){}
+  try{if(window.claude&&claude.use){dict=await claude.use('dictation');
+    if(dict){
+      dict.onPartial(({text})=>{const sp=S.sp,ta=$('#ta');if(!sp||sp.phase!=='speak'||!ta)return;act();ta.value=((sp.base||'')+' '+text).trim();});
+      dict.onFinal(({text})=>{const sp=S.sp,ta=$('#ta');if(!sp||sp.phase!=='speak'||!ta)return;act();sp.base=((sp.base||'')+' '+text).trim();ta.value=sp.base;});
+      dict.onState(({state})=>{const m=$('#mic');if(m)m.textContent=state==='listening'?'Listening':'Mic off';});
+    }}}catch(e){}
+  S.cap=true;paintCap();
+})();
+function paintCap(){const el=$('#capnote');if(!el)return;el.innerHTML=false?'<div class="note">Open this page in Claude to get fresh questions and graded Writing and Speaking feedback. Built-in questions are used for now.</div>':'';}
+
+/* ---------- catalogue ---------- */
+const TOPICS=['health','transport','the workplace','housing','education','technology','the environment','shopping','travel','community events','food','sports and fitness','neighbours','personal finance','culture and festivals','weather','volunteering','public services','family life','social media'];
+const CL=[
+ {id:'L1',name:'Part 1 · Problem solving',hint:'two people in a conversation solving a practical problem',spk:2},
+ {id:'L2',name:'Part 2 · Daily life conversation',hint:'a daily-life conversation, e.g. asking for information or arranging something',spk:2},
+ {id:'L3',name:'Part 3 · Information',hint:'one speaker giving information, e.g. a talk, voicemail or announcement',spk:1},
+ {id:'L4',name:'Part 4 · News item',hint:'a radio news report with a reporter and an interviewee',spk:2},
+ {id:'L5',name:'Part 5 · Discussion',hint:'three people discussing an issue and sharing opinions',spk:3},
+ {id:'L6',name:'Part 6 · Viewpoints',hint:'a talk presenting several viewpoints on one topic',spk:2}];
+const CR=[
+ {id:'R1',name:'Part 1 · Correspondence',hint:'an email or letter between people (about 250 words)',min:14},
+ {id:'R2',name:'Part 2 · Diagrams',hint:'a notice/schedule/price table presented as text lines with an email asking about it',min:14},
+ {id:'R3',name:'Part 3 · Information',hint:'an informational article (about 300 words)',min:14},
+ {id:'R4',name:'Part 4 · Viewpoints',hint:'an article with an opinion piece and two reader responses',min:14}];
+const CW=[
+ {id:'W1',name:'Task 1 · Writing an email',hint:'a situation requiring a semi-formal email',min:27,words:[150,200]},
+ {id:'W2',name:'Task 2 · Survey questions',hint:'a survey with two options; the writer chooses one and justifies it',min:26,words:[150,200]}];
+const CS=[
+ {id:'S1',name:'Task 1 · Giving advice',hint:'a friend or relative needs advice about a personal situation',prep:30,speak:90},
+ {id:'S2',name:'Task 2 · Personal experience',hint:'talk about a memorable personal experience on a given theme',prep:30,speak:60},
+ {id:'S3',name:'Task 3 · Describing a scene',hint:'a detailed written description of a scene as a bullet list of what is visible; the test taker describes it',prep:30,speak:60},
+ {id:'S4',name:'Task 4 · Making predictions',hint:'a scene description (bullet list); the test taker predicts what happens next',prep:30,speak:60},
+ {id:'S5',name:'Task 5 · Comparing and persuading',hint:'two options A and B with details; choose one and persuade someone',prep:60,speak:60},
+ {id:'S6',name:'Task 6 · Difficult situation',hint:'a problem situation where the test taker must explain and ask for a solution',prep:60,speak:60},
+ {id:'S7',name:'Task 7 · Expressing opinions',hint:'an opinion question on a social topic',prep:30,speak:90},
+ {id:'S8',name:'Task 8 · Unusual situation',hint:'describe an unusual object or situation (given as text) to someone',prep:30,speak:60}];
+const IL=[
+ {id:'L1',name:'Section 1 · Everyday conversation',hint:'a conversation between two people in an everyday social context, with form/note completion',spk:2,n:8},
+ {id:'L2',name:'Section 2 · Monologue',hint:'a monologue in a social context, e.g. a tour guide or announcement',spk:1,n:8},
+ {id:'L3',name:'Section 3 · Academic discussion',hint:'a discussion between two or three students and/or a tutor about a course',spk:3,n:8},
+ {id:'L4',name:'Section 4 · Academic lecture',hint:'a university lecture by one speaker',spk:1,n:8}];
+const IRA=[
+ {id:'R1',name:'Passage 1 · Science & environment',hint:'academic passage about science or the environment, 400-500 words',min:20},
+ {id:'R2',name:'Passage 2 · History & society',hint:'academic passage about history, society or culture, 400-500 words',min:20},
+ {id:'R3',name:'Passage 3 · Education & technology',hint:'academic passage about education or technology, 450-550 words',min:20}];
+const IRG=[
+ {id:'R1',name:'Section 1 · Notices & adverts',hint:'two or three short practical texts such as notices, adverts or timetables',min:20},
+ {id:'R2',name:'Section 2 · Workplace texts',hint:'a workplace text such as a job description, policy or training notice, 350-450 words',min:20},
+ {id:'R3',name:'Section 3 · Long article',hint:'a longer general-interest article, 450-550 words',min:20}];
+const IWA=[
+ {id:'W1',name:'Task 1 · Describe data',hint:'a data table (given as text) to summarise',min:20,words:[150,250]},
+ {id:'W2',name:'Task 2 · Essay',hint:'an opinion/discussion essay question',min:40,words:[250,400]}];
+const IWG=[
+ {id:'W1',name:'Task 1 · Letter',hint:'a letter-writing situation with three bullet points to cover',min:20,words:[150,250]},
+ {id:'W2',name:'Task 2 · Essay',hint:'an opinion/discussion essay question',min:40,words:[250,400]}];
+const IS=[
+ {id:'S1',name:'Part 1 · Interview',hint:'5 short familiar-topic questions (home, work, hobbies etc.)',steps:[0,30],n:5},
+ {id:'S2',name:'Part 2 · Cue card',hint:'a cue card: topic plus 3-4 bullet prompts and a "explain why" line',steps:[60,120],n:1},
+ {id:'S3',name:'Part 3 · Discussion',hint:'4 abstract discussion questions on a theme',steps:[0,45],n:4}];
+const SKL=['listening','reading','writing','speaking'];
+const SKI={listening:'Conversations, talks and lectures',reading:'Notices, articles and passages',writing:'Emails, letters and essays',speaking:'Timed answers out loud'};
+const SKT={
+ listening:['Read the questions before you press play.','Write numbers as digits while you listen.','Listen for paraphrases, not repeated words.'],
+ reading:['Skim the first line of each paragraph first.','Underline keywords in the question, then scan for them.','Not Given means the text never says it.'],
+ writing:['Plan for two minutes: purpose, two points, closing.','Use paragraphs and linking words.','Keep two minutes at the end to proofread.'],
+ speaking:['Start talking straight away and fill the time.','Give a reason and an example for every opinion.','Pause to think instead of saying um.']};
+function getTasks(sk){const e=P.exam,ac=P.module==='Academic';
+  if(e==='CELPIP')return {listening:CL,reading:CR,writing:CW,speaking:CS}[sk];
+  return {listening:IL,reading:ac?IRA:IRG,writing:ac?IWA:IWG,speaking:IS}[sk];}
+function taskMeta(t,sk){if(sk==='writing')return `${t.min} min · ${t.words[0]}-${t.words[1]}+ words`;
+  if(sk==='speaking')return P.exam==='CELPIP'?`Prep ${t.prep}s · Speak ${t.speak}s`:`${t.steps[0]?'Prep '+t.steps[0]+'s · ':''}${t.n>1?t.n+' questions · ':''}${t.steps[1]}s per answer`;
+  if(sk==='reading')return `${t.min} min · Auto-scored`;return 'Plays once · Auto-scored';}
+
+/* ---------- built-in question bank ---------- */
+const BANK={
+ writing:{
+  CELPIP:{W1:[{prompt:'You rent an apartment and the heating has not worked for a week. Write an email to your landlord. Explain the problem, describe how it has affected you, and say what you would like the landlord to do.'},{prompt:'Your company is planning a staff party. Write an email to your manager suggesting a place and an activity, giving reasons, and asking for approval.'}],
+   W2:[{prompt:'Your city is deciding how to improve public transit.\nOption A: more frequent buses on existing routes.\nOption B: a new light-rail line that will take several years to build.\nWhich option do you prefer? Explain your choice with reasons and examples.'},{prompt:'Your workplace is choosing between a four-day work week with longer days and the usual five-day week. Which do you prefer? Explain your choice with reasons and examples.'}]},
+  IELTS:{W1:{Academic:[{prompt:'The table shows the percentage of households with internet access in four countries in 2005, 2015 and 2025.\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.',data:'Country | 2005 | 2015 | 2025\nA | 42 | 78 | 94\nB | 15 | 52 | 81\nC | 63 | 85 | 96\nD | 8 | 35 | 70'}],
+   General:[{prompt:'You recently bought a laptop online but it arrived damaged. Write a letter to the company. In your letter:\n• describe the problem\n• explain what you have already done\n• say what you would like the company to do\n\nBegin your letter "Dear Sir or Madam,".'}]},
+   W2:[{prompt:'Some people think children should start school at a very early age, while others believe they should not start formal education until they are older.\nDiscuss both views and give your own opinion.'},{prompt:'More and more people are choosing to work from home. Do the advantages of this trend outweigh the disadvantages?'},{prompt:'Some believe governments should spend money on public transport rather than building new roads. To what extent do you agree or disagree?'}]}},
+ speaking:{
+  CELPIP:{S1:['Your friend has just moved to a new city for work and feels lonely. He asks you for advice on how to make new friends. Give him advice.'],
+   S2:['Talk about a time when you had to learn something difficult. What was it and how did you manage?'],
+   S3:['Describe this scene in as much detail as you can:\n• a busy farmers\' market on a sunny Saturday\n• a woman in a red coat buying apples from a stall\n• a child holding a balloon beside a man playing guitar\n• dark clouds gathering behind the tents'],
+   S4:['Look at this scene and predict what will happen next:\n• a group of hikers at the base of a mountain trail\n• one hiker checks a map, another ties a boot\n• the sky is turning grey and the wind is picking up'],
+   S5:['Your family is choosing a place for a weekend trip.\nOption A: a lakeside cabin, quiet, 3 hours away, $200 per night.\nOption B: a city hotel near museums and restaurants, 1 hour away, $150 per night.\nChoose one option and persuade your family.'],
+   S6:['You ordered an anniversary gift for your parents. It arrived a week late and damaged. Call the store, explain the problem and say what you want them to do.'],
+   S7:['Some people think students should wear school uniforms. Others disagree. What is your opinion? Explain your reasons.'],
+   S8:['You see a vending machine that sells fresh flowers in a train station. Describe the machine and explain how it might help the people who pass by it.']},
+  IELTS:{S1:[['Let\'s talk about your hometown. Where is your hometown?','What do you like most about it?','Has it changed much in recent years?','Would you like to live there in the future?','Is it a good place for young people?'],['Let\'s talk about food. What kind of food do you enjoy most?','Do you cook at home?','Is the food in your country changing?','What food did you dislike as a child?','Do you prefer eating alone or with others?']],
+   S2:['Describe a teacher who influenced you.\nYou should say:\n• who the teacher was\n• what subject they taught\n• what they did that influenced you\nand explain why you remember them.','Describe a place you visited that you would like to go back to.\nYou should say:\n• where it was\n• when you went\n• what you did there\nand explain why you want to return.'],
+   S3:[['What qualities make a good teacher?','How has technology changed the way teachers work?','Should teachers be paid more? Why or why not?','Can online learning replace classrooms?'],['Why do people like to travel?','What are the effects of tourism on local communities?','Is it better to travel alone or in a group?','How might travel change in the future?']]}},
+ reading:{
+  CELPIP:{title:'Community Library Changes',passage:'The Maple Ridge Public Library will introduce new opening hours starting 1 March. The branch will open at 9 a.m. on weekdays instead of 10 a.m., and it will stay open until 8 p.m. on Tuesdays and Thursdays. On Sundays, the library will close at 4 p.m. rather than 5 p.m.\n\nThe change follows a survey in which 62 percent of residents said they wanted earlier weekday access, mostly for studying and remote work. To cover the longer weekday hours, the library will reduce Saturday children\'s story time from two sessions to one, held at 11 a.m.\n\nMembers can still use the automated return box at any time. The library will also begin charging $5 per hour for meeting-room bookings by non-members; members will continue to book rooms for free. Director Anita Rao described the changes as a trial that will be reviewed in September.',
+   questions:[{type:'mcq',q:'What time will the library open on weekdays?',options:['8 a.m.','9 a.m.','10 a.m.','11 a.m.'],answer:'B',why:'The text says it opens at 9 a.m. instead of 10 a.m.',skill:'detail'},
+    {type:'mcq',q:'On which days will the library stay open until 8 p.m.?',options:['Mondays and Wednesdays','Tuesdays and Thursdays','Fridays and Saturdays','Every weekday'],answer:'B',why:'Tuesdays and Thursdays are named.',skill:'detail'},
+    {type:'tfng',q:'Fewer than half of the residents surveyed wanted earlier weekday access.',answer:'False',why:'62 percent wanted it, which is more than half.',skill:'numbers/dates'},
+    {type:'tfng',q:'The library will build a new children\'s wing this year.',answer:'Not Given',why:'No building plans are mentioned.',skill:'not given'},
+    {type:'fill',q:'How much will non-members pay per hour to book a meeting room? (number)',answer:'5',alt:['$5','5 dollars','$5 per hour'],why:'Non-members pay $5 per hour.',skill:'numbers/dates'},
+    {type:'mcq',q:'What is the main purpose of the passage?',options:['To announce changes to library services','To ask for donations','To advertise a children\'s event','To report a survey\'s results only'],answer:'A',why:'The whole text explains new hours and fees.',skill:'main idea'}]},
+  IELTS:{title:'The Return of Urban Beekeeping',passage:'Over the past decade, beekeeping has moved from the countryside to the rooftops of major cities. Hives now sit on office towers, hotel terraces and even museum roofs. Supporters argue that cities can be surprisingly good habitats for bees: parks, gardens and street trees provide a wide range of flowering plants, and urban areas generally use fewer agricultural pesticides than farmland. Some studies have found that city bees produce more honey per hive than rural ones.\n\nHowever, researchers warn that the trend may not be as beneficial as it appears. Honeybees are a managed species, and a growing number of hives can force wild pollinators such as bumblebees and hoverflies to compete for the same limited flowers. A survey in one European capital concluded that its rooftop hives already exceeded what the city\'s green spaces could comfortably support.\n\nExperts therefore suggest that cities should plant more flowers before encouraging more hives, and that people who want to help pollinators should consider creating habitat for wild species instead.',
+   questions:[{type:'tfng',q:'Urban areas generally use more pesticides than farmland.',answer:'False',why:'The passage says cities use fewer agricultural pesticides.',skill:'detail'},
+    {type:'tfng',q:'According to some studies, city bees produce more honey per hive than rural bees.',answer:'True',why:'Stated directly in paragraph 1.',skill:'detail'},
+    {type:'tfng',q:'Wild pollinators are more efficient than honeybees.',answer:'Not Given',why:'Efficiency is never compared.',skill:'not given'},
+    {type:'mcq',q:'What risk of increasing hive numbers is mentioned?',options:['Wild pollinators may lose access to flowers','Honey quality may fall','Rooftops may become unsafe','Pesticide use may rise'],answer:'A',why:'Wild pollinators compete for limited flowers.',skill:'inference'},
+    {type:'fill',q:'Name ONE wild pollinator mentioned in the passage.',answer:'bumblebees',alt:['hoverflies','bumblebee','hoverfly'],why:'Bumblebees and hoverflies are named.',skill:'detail'},
+    {type:'mcq',q:'What do experts recommend before adding more hives?',options:['Planting more flowers','Banning rooftop hives','Importing new bee species','Measuring honey output'],answer:'A',why:'The final paragraph recommends planting more flowers first.',skill:'main idea'}]}},
+ listening:{
+  CELPIP:{title:'Booking a Moving Truck',script:[
+   {speaker:'Clerk',text:'Good morning, Reliable Rentals. How can I help you?'},
+   {speaker:'Maya',text:'Hi, I\'d like to reserve a moving truck for next Saturday, the fourteenth.'},
+   {speaker:'Clerk',text:'Let me check. We have a small truck and a large truck. The small one is ninety dollars a day and the large one is one hundred and forty.'},
+   {speaker:'Maya',text:'I\'m moving out of a one-bedroom apartment, so the small one should be enough, right?'},
+   {speaker:'Clerk',text:'Usually, yes. But if you have a lot of furniture, the large one is safer. Do you have a sofa or a bed frame?'},
+   {speaker:'Maya',text:'A sofa and a queen bed, plus about twenty boxes.'},
+   {speaker:'Clerk',text:'In that case I\'d recommend the large truck. You\'ll also need a valid driver\'s licence and a credit card for a two hundred dollar deposit.'},
+   {speaker:'Maya',text:'Okay. Can I pick it up on Friday evening? I\'d like to load it that night.'},
+   {speaker:'Clerk',text:'Friday pickup is possible after five p.m., but it costs an extra twenty dollars. The truck must be returned by six p.m. on Saturday with a full tank.'},
+   {speaker:'Maya',text:'Alright, I\'ll take the large truck with the Friday pickup.'}],
+   questions:[{type:'mcq',q:'Why does the clerk recommend the large truck?',options:['It is cheaper','The caller has a sofa, a queen bed and many boxes','The small truck is not available','The caller is moving far away'],answer:'B',why:'Maya lists a sofa, queen bed and about twenty boxes.',skill:'inference'},
+    {type:'fill',q:'What is the daily price of the large truck? (number)',answer:'140',alt:['$140','140 dollars','one hundred and forty'],why:'"One hundred and forty" dollars a day.',skill:'numbers/dates'},
+    {type:'mcq',q:'What must the customer bring?',options:['A passport and cash','A licence and a credit card','Insurance papers only','A deposit in cash'],answer:'B',why:'Driver\'s licence and credit card.',skill:'detail'},
+    {type:'mcq',q:'How much extra is Friday pickup?',options:['$10','$20','$30','$40'],answer:'B',why:'"An extra twenty dollars".',skill:'numbers/dates'},
+    {type:'mcq',q:'When must the truck be returned?',options:['Friday at 5 p.m.','Saturday at 6 p.m., with a full tank','Sunday morning','Saturday at 5 p.m., empty'],answer:'B',why:'Returned by six p.m. Saturday with a full tank.',skill:'detail'}]},
+  IELTS:{title:'Gym Membership Enquiry',script:[
+   {speaker:'Receptionist',text:'Good afternoon, Northside Fitness Centre.'},
+   {speaker:'Caller',text:'Hello, I\'d like to ask about joining. I\'m a student.'},
+   {speaker:'Receptionist',text:'We have a student rate of thirty-five pounds a month, with a one-time joining fee of fifteen pounds. Could I take your name?'},
+   {speaker:'Caller',text:'It\'s Daniel Okoye. That\'s O, K, O, Y, E.'},
+   {speaker:'Receptionist',text:'Thank you. And a contact number?'},
+   {speaker:'Caller',text:'Zero seven seven one two, three four five, nine eight six.'},
+   {speaker:'Receptionist',text:'The pool is open from six a.m. to ten p.m. on weekdays. Classes include yoga on Wednesdays and spinning on Fridays.'},
+   {speaker:'Caller',text:'I\'m interested in yoga. Is there a free trial?'},
+   {speaker:'Receptionist',text:'Yes, one free session. You can come this Wednesday at seven p.m. Please bring a towel and your student card.'}],
+   questions:[{type:'fill',q:'Monthly student rate: £ ____',answer:'35',alt:['£35','thirty-five'],why:'Thirty-five pounds a month.',skill:'numbers/dates'},
+    {type:'fill',q:'Joining fee: £ ____',answer:'15',alt:['£15','fifteen'],why:'One-time fee of fifteen pounds.',skill:'numbers/dates'},
+    {type:'fill',q:'Surname (spell it): ____',answer:'Okoye',alt:[],why:'Spelled O-K-O-Y-E.',skill:'spelling'},
+    {type:'fill',q:'Phone number: ____',answer:'07712345986',alt:[],why:'Zero seven seven one two three four five nine eight six.',skill:'numbers/dates'},
+    {type:'mcq',q:'Which class is the caller interested in?',options:['Spinning','Yoga','Swimming lessons','Pilates'],answer:'B',why:'"I\'m interested in yoga".',skill:'detail'},
+    {type:'fill',q:'Besides a towel, what must the caller bring? (two words)',answer:'student card',alt:['your student card'],why:'"A towel and your student card".',skill:'detail'}]}}
+};
+
+/* ---------- generation ---------- */
+function pickTopic(){const c=TOPICS.filter(t=>!S.recent.includes(t));const t=rnd(c.length?c:TOPICS);S.recent=[...S.recent,t].slice(-8);return t;}
+async function serverJSON(prompt){
+  let r;try{r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});}catch(e){throw {code:'network'};}
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw {code:d.code||'server'};
+  const m=String(d.text||'').match(/\{[\s\S]*\}/);if(!m)throw {code:'parse'};return JSON.parse(m[0]);
+}
+async function askJSON(prompt,opts){
+  if(!sampleFn)return serverJSON(prompt);
+  opts=Object.assign({cache:false},opts||{});
+  try{const r=await sampleFn.json(prompt,opts);if(r&&typeof r==='object')return r;}catch(e){if(e&&(e.code==='not_granted'||e.code==='rate_limited'))throw e;}
+  const t=await sampleFn(prompt,opts);const m=String(t.text||'').match(/\{[\s\S]*\}/);if(!m)throw {code:'parse'};return JSON.parse(m[0]);
+}
+const QSPEC='"questions":[{"type":"mcq"|"tfng"|"fill","q":string,"options":[4 strings, mcq only],"answer":string (mcq: letter A-D; tfng: True|False|Not Given; fill: the answer, max 3 words, digits for numbers),"alt":[accepted alternative answers],"why":string (one sentence citing the text),"skill":one of "main idea","detail","inference","opinion/attitude","numbers/dates","spelling","vocabulary","not given"}]';
+async function generate(task){
+  const e=P.exam,mod=P.module,topic=pickTopic(),sk=S.skill;
+  const style=e==='CELPIP'?'CELPIP General (Canadian everyday context, plain modern English)':`IELTS ${mod} (international/British context)`;
+  if(sk==='writing'){
+    const j=await askJSON(`You are an exam item writer for ${style} Writing. Write ONE original practice question.\nTask: ${task.name} - ${task.hint}. Topic area: ${topic}.\nMatch the real exam wording and difficulty. State word expectations (${task.words[0]}-${task.words[1]}+ words).\n${e==='IELTS'&&mod==='Academic'&&task.id==='W1'?'Because charts cannot be drawn, give the figures as a small plain-text table in "data" (3-5 rows, 3-4 columns, realistic numbers) and put the instructions in "prompt".':'Leave "data" as an empty string.'}\nReturn ONLY JSON: {"prompt":string,"data":string}`);
+    if(!j.prompt)throw {code:'bad'};return {prompt:j.prompt,data:j.data||''};}
+  if(sk==='speaking'){
+    const n=e==='CELPIP'?1:task.n;
+    const j=await askJSON(`You are an exam item writer for ${style} Speaking. Write ONE original practice item.\nTask: ${task.name} - ${task.hint}. Topic area: ${topic}.\n${e==='CELPIP'?'Write a single prompt in the real CELPIP style; for scene tasks give 4-6 bullet lines of what is visible, since no picture can be shown.':task.id==='S2'?'Write one cue card in the exact IELTS format: "Describe ..." then "You should say:" with 3 bullet lines, then "and explain ...".':`Write exactly ${n} questions in the exact IELTS style.`}\nReturn ONLY JSON: {"prompts":[${n} strings]}`);
+    if(!Array.isArray(j.prompts)||!j.prompts.length)throw {code:'bad'};return {prompts:j.prompts.map(String)};}
+  const reading=sk==='reading';
+  const nq=reading?(e==='CELPIP'?6:8):(e==='CELPIP'?5:8);
+  const qt=e==='CELPIP'?'mostly "mcq" with 4 options and one "fill" if natural':reading?'a mix of "tfng", "mcq" and "fill" (short answer, max 3 words from the text)':'mostly "fill" (form/note completion, max 3 words or a number) plus a few "mcq"';
+  const body=reading?`Write the reading text (${task.hint}). Plain text only; use blank lines between paragraphs.`:`Write the audio script: ${task.spk} speaker(s), 250-350 words total, in short natural turns (max 40 words each), as spoken English. Write all numbers, dates, prices and spellings the way they are spoken (e.g. "one hundred and forty dollars", "O, K, O, Y, E").`;
+  const j=await askJSON(`You are an exam item writer for ${style} ${reading?'Reading':'Listening'}. Write ONE original practice item.\nTask: ${task.name} - ${task.hint}. Topic area: ${topic}.\n${body}\nThen write exactly ${nq} questions in the order the answers appear, ${qt}. Every answer must be clearly supported by the text.\nReturn ONLY JSON: {"title":string,${reading?'"passage":string,':'"script":[{"speaker":string,"text":string}],'}${QSPEC}}`,{modelTier:'default'});
+  if(reading&&!j.passage)throw {code:'bad'};if(!reading&&!(j.script&&j.script.length))throw {code:'bad'};
+  return j;
+}
+function fallback(task){
+  const e=P.exam,sk=S.skill,mod=P.module;
+  if(sk==='writing'){if(e==='CELPIP')return rnd(BANK.writing.CELPIP[task.id]);const b=BANK.writing.IELTS;return rnd(task.id==='W1'?b.W1[mod]:b.W2);}
+  if(sk==='speaking'){const b=BANK.speaking[e][task.id];const v=rnd(b);return {prompts:Array.isArray(v)?v:[v]};}
+  return BANK[sk][e];
+}
+function normQ(r){
+  if(!r||!r.q)return null;const type=String(r.type||'').toLowerCase();const base={q:String(r.q),why:r.why||'',skill:String(r.skill||'detail').toLowerCase()};
+  if(type==='tfng'){const a=String(r.answer||'').trim().toLowerCase();const i=a.startsWith('t')?0:a.startsWith('f')?1:a.startsWith('n')?2:-1;if(i<0)return null;return {...base,type:'tfng',options:['True','False','Not Given'],correct:i};}
+  if(type==='mcq'){const o=(r.options||[]).map(String);if(o.length<3)return null;const a=String(r.answer||'').trim();let i=/^[A-Da-d]\b/.test(a)&&a.length<=3?'abcd'.indexOf(a[0].toLowerCase()):o.findIndex(x=>norm(x)===norm(a));if(i<0||i>=o.length)return null;return {...base,type:'mcq',options:o,correct:i};}
+  if(type==='fill'){const acc=[r.answer,...(r.alt||[])].filter(x=>x!=null&&String(x).trim()).map(norm);if(!acc.length)return null;return {...base,type:'fill',accept:acc,display:String(r.answer)};}
+  return null;
+}
+function prepRL(item){const qs=(item.questions||[]).map(normQ).filter(Boolean);if(qs.length<3)throw {code:'bad'};return {...item,qs};}
+function pctNum(p,e){
+  if(e==='CELPIP'){const t=[[95,12],[90,11],[84,10],[77,9],[69,8],[60,7],[50,6],[40,5],[30,4],[20,3],[10,2]];for(const[a,b]of t)if(p>=a)return b;return 1;}
+  const t=[[97,9],[92,8.5],[87,8],[80,7.5],[73,7],[65,6.5],[57,6],[45,5.5],[38,5],[30,4.5],[24,4],[15,3.5],[8,3]];for(const[a,b]of t)if(p>=a)return b;return 2.5;}
+const lbl=(e,n)=>(e==='CELPIP'?'Level ':'Band ')+n;
+const TIPS={'main idea':'Read the first and last sentence of each paragraph first; the main idea is rarely a small detail.','detail':'Underline keywords in the question, then scan for the same word or a synonym. Re-read the sentence around it before choosing.','inference':'Ask "what must be true because of this sentence?" Don\'t pick an option just because a word matches.','opinion/attitude':'Watch words like "however", "unfortunately", "surprisingly". They signal the speaker\'s attitude.','numbers/dates':'Write numbers as you hear or read them and double-check units, tens vs teens (13 vs 30), and dates.','spelling':'Practise letter names (A-Z) and common name spellings; one wrong letter means a wrong answer.','vocabulary':'Keep a list of synonyms and paraphrases; both exams test paraphrase, not the same words.','not given':'False means the text says the opposite; Not Given means the text doesn\'t say. Don\'t use outside knowledge.'};
+
+/* ---------- timers, speech, sound, confetti ---------- */
+let TM=null;
+function stopTimer(){if(TM){clearInterval(TM);TM=null;}}
+function startTimer(sec,id,onEnd){stopTimer();const end=Date.now()+sec*1000;const tick=()=>{const el=$(id);if(!el){stopTimer();return;}const left=Math.max(0,Math.round((end-Date.now())/1000));el.textContent=fmt(left);el.classList.toggle('warn',left<=30);if(left<=0){stopTimer();onEnd&&onEnd();}};tick();TM=setInterval(tick,250);}
+function stopSpeech(){S.stopSpeech=true;try{window.speechSynthesis&&speechSynthesis.cancel();}catch(e){}}
+function speakScript(script,onDone){
+  const synth=window.speechSynthesis;if(!synth)return false;synth.cancel();S.stopSpeech=false;
+  const vs=synth.getVoices().filter(v=>/^en/i.test(v.lang));const pref=vs.filter(v=>/en[-_](CA|GB|US|AU)/i.test(v.lang));const pool=pref.length?pref:vs;
+  const names=[...new Set(script.map(s=>s.speaker))];
+  const cfg=names.map((n,i)=>({v:pool.length?pool[(i*2)%pool.length]:null,pitch:[1,.85,1.2][i%3]}));
+  const q=[];script.forEach(seg=>{String(seg.text).split(/(?<=[.?!])\s+/).forEach((t,k,a)=>{if(t.trim())q.push({sp:seg.speaker,t,last:k===a.length-1});});});
+  let i=0;const next=()=>{if(S.stopSpeech)return;if(i>=q.length){onDone&&onDone();return;}const s=q[i++];const u=new SpeechSynthesisUtterance(s.t);const c=cfg[names.indexOf(s.sp)];if(c.v){u.voice=c.v;u.lang=c.v.lang;}else u.lang='en-CA';u.pitch=c.pitch;u.rate=.95;const go=()=>setTimeout(next,s.last?450:120);u.onend=go;u.onerror=go;synth.speak(u);};
+  next();return true;
+}
+let AC=null;
+function tone(seq){if(!P.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();let t=AC.currentTime;seq.forEach(([f,d])=>{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.16,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02);t+=d*.8;});}catch(e){}}
+const SND={good:[[660,.1],[880,.16]],bad:[[247,.16],[185,.22]],done:[[523,.1],[659,.1],[784,.1],[1047,.28]]};
+function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms);}catch(e){}}
+function confetti(n){
+  if(reduce)return;const c=$('#fx');if(!c)return;const dpr=Math.min(2,window.devicePixelRatio||1),W=innerWidth,H=innerHeight;
+  c.width=W*dpr;c.height=H*dpr;const g=c.getContext('2d');g.scale(dpr,dpr);
+  const cols=['#ffb21e','#2f6bff','#e5334b','#14b58d','#8b5cf6','#ff7a3d'];
+  const ps=Array.from({length:n},()=>({x:W/2+(Math.random()-.5)*80,y:H*.34,vx:(Math.random()-.5)*15,vy:-Math.random()*14-3,w:6+Math.random()*6,h:4+Math.random()*5,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:rnd(cols)}));
+  const t0=performance.now();
+  (function f(now){const dt=now-t0;g.clearRect(0,0,W,H);let alive=0;
+    ps.forEach(p=>{p.vy+=.36;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;if(p.y<H+20){alive++;g.save();g.translate(p.x,p.y);g.rotate(p.r);g.fillStyle=p.c;g.fillRect(-p.w/2,-p.h/2,p.w,p.h);g.restore();}});
+    if(alive&&dt<4200)requestAnimationFrame(f);else g.clearRect(0,0,W,H);})(t0);
+}
+
+/* ---------- icons and mascot ---------- */
+const ICONS={
+ listening:'<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/>',
+ reading:'<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>',
+ writing:'<path d="M4 20l1-4L16.5 4.5a2 2 0 0 1 3 3L8 19z"/><path d="M14 7l3 3"/>',
+ speaking:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+ learn:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+ practice:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+ chart:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',
+ me:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4-6.5 8-6.5s7 2 8 6.5"/>',
+ close:'<path d="M6 6l12 12M18 6L6 18"/>',
+ back:'<path d="M15 6l-6 6 6 6"/>',
+ check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ play:'<path d="M8 5v14l11-7z"/>',
+ bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
+ shuffle:'<path d="M3 6h4l10 12h4M3 18h4l3-3.6M14 8.6L17 6h4M18 3l3 3-3 3M18 15l3 3-3 3"/>',
+ flame:'<path d="M12 2.5c.6 3.2 4.6 5.4 4.6 9.7a4.6 4.6 0 0 1-9.2 0c0-1.9.9-3.2 2-4 .1 1.7.9 2.7 1.9 2.9-.4-3-.3-5.6.7-8.6z"/>',
+ bolt:'<path d="M13 2L4.5 13.5H11L10 22l9-12h-6.5z"/>',
+ star:'<path d="M12 2.8l2.8 5.9 6.4.9-4.7 4.5 1.2 6.4L12 17.5 6.3 20.5l1.2-6.4L2.8 9.6l6.4-.9z"/>',
+ wrong:'<circle cx="12" cy="12" r="10"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="#fff"/>',
+ right:'<circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5" stroke="#fff"/>'};
+const ic=(k,c)=>`<svg class="ic ${c||''}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg>`;
+const icf=(k,c)=>ic(k,'f '+(c||''));
+function bandy(mood,size,cls){
+  const m=mood||'happy';
+  const dark='style="fill:none;stroke:#2a1530;stroke-width:4;stroke-linecap:round"';
+  const mouth=m==='cheer'?'<path d="M46 68h28q0 18-14 18t-14-18z" style="fill:#2a1530"/><path d="M52 80q8 6 16 0" style="fill:#ff7a8a"/>':m==='sad'?`<path d="M48 82q12-12 24 0" ${dark}/>`:m==='think'?`<path d="M52 77h16" ${dark}/>`:`<path d="M47 71q13 13 26 0" ${dark}/>`;
+  const px=m==='think'?[4,-4]:[0,1];
+  const arms=m==='cheer'?'<ellipse cx="13" cy="48" rx="7" ry="14" transform="rotate(28 13 48)" style="fill:var(--brand)"/><ellipse cx="107" cy="48" rx="7" ry="14" transform="rotate(-28 107 48)" style="fill:var(--brand)"/>':'';
+  return `<svg class="bandy ${cls||''}" width="${size}" height="${size}" viewBox="0 0 120 120" aria-hidden="true">
+<ellipse cx="60" cy="113" rx="32" ry="5" style="fill:rgba(0,0,0,.13)"/>
+${arms}
+<path d="M60 18c-2-6 2-11 8-12" style="fill:none;stroke:var(--brand-d);stroke-width:4;stroke-linecap:round"/><circle cx="69" cy="6" r="5" style="fill:var(--gold)"/>
+<rect x="18" y="16" width="84" height="90" rx="38" style="fill:var(--brand)"/>
+<ellipse cx="60" cy="84" rx="27" ry="19" style="fill:rgba(255,255,255,.22)"/>
+<circle cx="43" cy="52" r="12" style="fill:#fff"/><circle cx="77" cy="52" r="12" style="fill:#fff"/>
+<circle cx="${43+px[0]}" cy="${53+px[1]}" r="5.5" style="fill:#1d2236"/><circle cx="${77+px[0]}" cy="${53+px[1]}" r="5.5" style="fill:#1d2236"/>
+<ellipse cx="29" cy="68" rx="6" ry="4" style="fill:#ff8fa3;opacity:.55"/><ellipse cx="91" cy="68" rx="6" ry="4" style="fill:#ff8fa3;opacity:.55"/>
+${mouth}
+<ellipse cx="44" cy="107" rx="10" ry="5" style="fill:var(--brand-d)"/><ellipse cx="76" cy="107" rx="10" ry="5" style="fill:var(--brand-d)"/></svg>`;
+}
+
+/* ---------- stats ---------- */
+const lvOf=x=>x.lv!=null?x.lv:(x.skill==='reading'||x.skill==='listening'?pctNum(x.score,x.exam):x.score);
+const maxLv=()=>P.exam==='CELPIP'?12:9;
+const mine=()=>hist().filter(x=>x.exam===P.exam&&(P.exam!=='IELTS'||x.module===P.module)&&SKL.includes(x.skill));
+function stats(){
+  const days={};let total=0;
+  hist().forEach(x=>{const v=x.xp==null?15:x.xp;days[dk(x.ts)]=(days[dk(x.ts)]||0)+v;total+=v;});
+  const today=dk(Date.now());let s=0;const d=new Date();if(!days[today])d.setDate(d.getDate()-1);
+  while(days[dk(d.getTime())]){s++;d.setDate(d.getDate()-1);}
+  return {days,total,today:days[today]||0,streak:s,doneToday:!!days[today]};
+}
+function bestMap(){const m={};mine().forEach(x=>{const k=x.skill+'|'+x.task,lv=lvOf(x);if(!m[k])m[k]={lv,n:1};else{m[k].n++;if(lv>m[k].lv)m[k].lv=lv;}});return m;}
+const starsOf=lv=>{const t=P.target[P.exam];return lv>=t?3:lv>=t-1?2:1;};
+function daysLeft(){if(!P.date)return null;const d=Math.ceil((new Date(P.date+'T00:00:00')-new Date().setHours(0,0,0,0))/864e5);return isFinite(d)?d:null;}
+function bestBySkill(){const o={};SKL.forEach(sk=>{const a=mine().filter(x=>x.skill===sk).map(lvOf);o[sk]=a.length?Math.max(...a):null;});return o;}
+
+/* ---------- views: shell ---------- */
+function courseName(){return P.exam==='CELPIP'?'CELPIP':'IELTS '+(P.module==='General'?'GT':'Academic');}
+function chips(){const st=stats();return `<button class="chipx" data-act="course" aria-label="Change course"><span class="dot"></span>${esc(courseName())}</button><span class="sp"></span><span class="chipx" title="Day streak">${icf('flame','fl')}${st.streak}</span><span class="chipx" title="XP today">${icf('bolt','gd')}${st.today}</span>`;}
+function goalCard(){const st=stats(),g=P.goal,pc=Math.min(100,100*st.today/g);const done=st.today>=g;
+  return `<section class="card"><h3>Daily goal <span class="muted">${st.today} / ${g} XP</span></h3><div class="gbar"><i style="width:${pc}%"></i></div><p class="muted">${done?'Goal reached. Anything more is a bonus.':`${g-st.today} XP to go. One lesson usually covers it.`}</p></section>`;}
+function streakCard(){const st=stats();const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push({k:dk(d.getTime()),n:d.toLocaleDateString(undefined,{weekday:'narrow'})});}
+  return `<section class="card"><h3><span style="display:flex;align-items:center;gap:8px">${icf('flame','fl')}<span class="big">${st.streak}</span> day streak</span></h3><div class="wk">${days.map(d=>`<div>${d.n}<i class="${st.days[d.k]?'on':''}">${st.days[d.k]?ic('check'):''}</i></div>`).join('')}</div></section>`;}
+function targetCard(){const t=P.target[P.exam],b=bestBySkill(),vals=Object.values(b).filter(v=>v!=null),dl=daysLeft();
+  const avg=vals.length?Math.round(2*vals.reduce((a,c)=>a+c,0)/vals.length)/2:null;
+  return `<section class="card"><h3>Your target <span class="muted">${esc(lbl(P.exam,t))}</span></h3><p class="muted">${avg==null?'Finish a lesson to see where you stand.':`Best average so far: <b>${esc(lbl(P.exam,avg))}</b>.`}${dl!=null?` ${dl>=0?dl+' days until your exam.':'Your exam date has passed.'}`:''}</p></section>`;}
+function rail(){const it=[['learn','Learn'],['practice','Practice'],['progress','Progress'],['me','Profile']];
+  return `<aside class="rail"><div class="logo">${bandy('happy',40)}<span>Bandwise</span></div>${it.map(([k,n])=>`<button class="rn ${S.tab===k?'on':''}" data-act="tab" data-arg="${k}" aria-label="${n}">${ic(k==='learn'?'learn':k==='practice'?'practice':k==='progress'?'chart':'me')}<span>${n}</span></button>`).join('')}</aside>`;}
+function bnav(){const it=[['learn','Learn'],['practice','Practice'],['progress','Progress'],['me','Profile']];
+  return `<nav class="bnav" aria-label="Main">${it.map(([k,n])=>`<button class="${S.tab===k?'on':''}" data-act="tab" data-arg="${k}">${ic(k==='learn'?'learn':k==='practice'?'practice':k==='progress'?'chart':'me')}${n}</button>`).join('')}</nav>`;}
+function viewShell(){
+  const t=S.tab,main=t==='learn'?tabLearn():t==='practice'?tabPractice():t==='progress'?tabProgress():tabMe();
+  return `<div class="app">${rail()}<main class="center"><div class="tb">${chips()}</div><div id="capnote"></div>${main}</main><aside class="side"><div class="sk-row">${chips()}</div>${goalCard()}${streakCard()}${targetCard()}</aside></div>${bnav()}`;
+}
+
+/* ---------- views: learn ---------- */
+const DX=[0,40,64,40,0,-40,-64,-40];
+function tabLearn(){
+  const bm=bestMap();let next=null;
+  outer:for(const sk of SKL){for(const t of getTasks(sk)){if(!bm[sk+'|'+t.name]){next=sk+'|'+t.name;break outer;}}}
+  if(!next)outer2:for(const sk of SKL){for(const t of getTasks(sk)){if(starsOf(bm[sk+'|'+t.name].lv)<3){next=sk+'|'+t.name;break outer2;}}}
+  const units=SKL.map((sk,ui)=>{const ts=getTasks(sk);const done=ts.filter(t=>bm[sk+'|'+t.name]).length;
+    const nodes=ts.map((t,i)=>{const b=bm[sk+'|'+t.name],isNext=next===sk+'|'+t.name;const st=b?starsOf(b.lv):0;
+      return `<div class="pn" style="--dx:${DX[i%8]}px"><div class="nw">${isNext?`<div class="bub">${b?'Try again':'Start'}</div>`:''}<button class="node ${b?'done':''} ${isNext?'next':''}" data-act="open" data-arg="${sk}:${t.id}" aria-label="${esc(t.name)}">${b?ic('check'):ic(sk)}</button></div><div class="cap">${esc(t.name)}</div>${b?`<div class="stars">${[1,2,3].map(n=>`<svg class="ic f ${n<=st?'on':'off'}" viewBox="0 0 24 24" aria-hidden="true">${ICONS.star}</svg>`).join('')}</div>`:''}</div>`;}).join('');
+    return `<section class="unit" data-skill="${sk}"><div class="uh"><div><small>Unit ${ui+1} · ${done} of ${ts.length} done</small><h2>${cap(sk)}</h2><p>${SKI[sk]}</p></div><button class="tipb" data-act="tips" data-arg="${sk}">${ic('bulb')}Tips</button></div><div class="path">${nodes}</div></section>`;}).join('');
+  return units;
+}
+
+/* ---------- views: practice, progress, profile ---------- */
+function tabPractice(){
+  const nm=mistakeItems().length;
+  return `<h1 class="pt">Practice</h1><p class="sub">Pick a skill and jump straight in. Every question is new.</p>
+  <div class="pgrid">${SKL.map(sk=>`<button class="ptile" data-skill="${sk}" data-act="quick" data-arg="${sk}"><span class="pi">${ic(sk)}</span><b>${cap(sk)}</b><small>Random task</small></button>`).join('')}</div>
+  <div class="stack"><button class="card" data-act="surprise" style="flex-direction:row;align-items:center;gap:14px;text-align:left"><span class="badge-sk" style="--sk:var(--brand);--sk-d:var(--brand-d)">${ic('shuffle')}</span><span><b style="font:600 19px var(--disp)">Surprise me</b><br><span class="muted">Any skill, any task</span></span></button>
+  <section class="card"><h3>Fix your mistakes</h3><p class="muted">${nm?`${nm} correction${nm===1?'':'s'} saved from your Writing and Speaking feedback. Quick flashcards, +XP for each one you fix.`:'Corrections from your Writing and Speaking feedback collect here after your first graded lesson.'}</p>${nm?'<button class="btn block" data-act="mrStart">Review mistakes</button>':''}</section></div>`;
+}
+function spark(v,w,h){if(v.length<2)return '';w=w||160;h=h||34;const p=v.map((y,i)=>`${(i/(v.length-1)*w).toFixed(1)},${(h-4-Math.min(1,y)*(h-8)).toFixed(1)}`).join(' ');return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${p}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;}
+function tabProgress(){
+  const st=stats(),m=mine(),lvl=Math.floor(st.total/150)+1,pg=(st.total%150)/150*100;
+  const errs={};hist().forEach(x=>Object.entries(x.err||{}).forEach(([k,n])=>{errs[k]=(errs[k]||0)+n;}));
+  const top=Object.entries(errs).sort((a,b)=>b[1]-a[1]).slice(0,6),mx=top.length?top[0][1]:1;
+  const today=new Date(),dow=(today.getDay()+6)%7,start=new Date(today);start.setDate(today.getDate()-dow-28);
+  const cells=[];for(let i=0;i<35;i++){const d=new Date(start);d.setDate(start.getDate()+i);const k=dk(d.getTime());const f=d>today;const x=st.days[k]||0;cells.push(`<i class="${f?'f':x>=50?'l3':x>=20?'l2':x>0?'l1':''} ${k===dk(Date.now())?'t':''}" title="${k}: ${x} XP"></i>`);}
+  const best=bestBySkill(),t=P.target[P.exam],mxl=maxLv();
+  return `<h1 class="pt">Progress</h1><p class="sub">${hist().length} lessons so far. ${esc(courseName())} results shown below.</p>
+  <div class="stack" style="margin-top:16px">
+  <section class="card"><h3>Level ${lvl} <span class="muted">${st.total} XP total</span></h3><div class="gbar"><i style="width:${pg}%"></i></div><p class="muted">${150-(st.total%150)} XP to level ${lvl+1}</p></section>
+  <section class="card"><h3>Practice calendar <span class="muted">Last 5 weeks</span></h3><div class="cal">${'MTWTFSS'.split('').map(d=>`<b>${d}</b>`).join('')}${cells.join('')}</div></section>
+  <section class="card tgt"><h3>Best vs target <span class="muted">${esc(lbl(P.exam,t))}</span></h3>${SKL.map(sk=>`<div class="row" data-skill="${sk}"><span>${cap(sk)}</span><div class="tr"><i style="width:${best[sk]==null?0:100*best[sk]/mxl}%"></i><s style="left:${100*t/mxl}%"></s></div><span>${best[sk]==null?'-':best[sk]}</span></div>`).join('')}<p class="muted">The dark marker is your target.</p></section>
+  <div class="sgrid">${SKL.map(sk=>{const a=m.filter(x=>x.skill===sk);const l=a[a.length-1];return `<section class="card scard" data-skill="${sk}"><div class="hd"><span class="badge-sk">${ic(sk)}</span><div><b>${cap(sk)}</b><div class="muted">${a.length} lesson${a.length===1?'':'s'}</div></div></div><b style="font:600 20px var(--disp)">${l?esc(l.label.split(' (')[0]):'Not started'}</b>${spark(a.slice(-10).map(x=>lvOf(x)/mxl))}</section>`;}).join('')}</div>
+  <section class="card bars"><h3>Most common mistakes</h3>${top.length?top.map(([k,n])=>`<div class="row"><span>${esc(cap(k))}</span><div class="tr"><i style="width:${100*n/mx}%"></i></div><span>${n}</span></div>`).join('')+'<p class="muted">Fix the top one first. It costs you the most marks.</p>':'<p class="muted">No mistake data yet.</p>'}</section>
+  <section class="card"><h3>Recent lessons</h3>${hist().slice(-8).reverse().map(x=>`<div class="prow"><div><b>${esc(x.exam)} ${esc(x.skill==='review'?'mistake review':x.skill)}</b><div class="muted">${esc(x.task)}</div></div><div style="text-align:right"><b>${esc(x.label)}</b><div class="muted">${new Date(x.ts).toLocaleDateString()}</div></div></div>`).join('')||'<p class="muted">Nothing yet. Start from the Learn tab.</p>'}</section></div>`;
+}
+function tabMe(){
+  const st=stats(),lvl=Math.floor(st.total/150)+1,e=P.exam,tg=e==='CELPIP'?[5,6,7,8,9,10,11,12]:[5,5.5,6,6.5,7,7.5,8,8.5];
+  const cur=e==='CELPIP'?'CELPIP':'IELTS:'+P.module,dl=daysLeft();
+  return `<h1 class="pt">Profile</h1><div class="stack" style="margin-top:16px">
+  <section class="card" style="flex-direction:row;align-items:center;gap:16px">${bandy('happy',84)}<div><b style="font:600 22px var(--disp)">Level ${lvl}</b><div class="muted">${st.total} XP · ${st.streak} day streak</div></div></section>
+  <section class="card setrow"><b>Course</b>${[['CELPIP','CELPIP','General test, levels 1 to 12'],['IELTS:Academic','IELTS Academic','Bands 0 to 9'],['IELTS:General','IELTS General Training','Bands 0 to 9']].map(([v,n,s])=>`<button class="pick ${cur===v?'on':''}" data-act="setCourse" data-arg="${v}"><span><b>${n}</b><small>${s}</small></span></button>`).join('')}</section>
+  <section class="card setrow"><b>Target ${e==='CELPIP'?'level':'band'}</b><div class="pgrid2">${tg.map(v=>`<button class="pick ${P.target[e]===v?'on':''}" data-act="setTarget" data-arg="${v}"><b>${v}</b></button>`).join('')}</div></section>
+  <section class="card setrow"><b>Daily goal</b>${[[20,'Casual','About one lesson'],[40,'Regular','Two lessons'],[60,'Serious','Three lessons'],[100,'Intense','Five lessons']].map(([v,n,s])=>`<button class="pick ${P.goal===v?'on':''}" data-act="setGoal" data-arg="${v}"><span><b>${n}</b><small>${v} XP · ${s}</small></span></button>`).join('')}</section>
+  <section class="card setrow"><b>Exam date</b><input class="date" type="date" id="edate" value="${esc(P.date)}"><span class="muted" id="dleft">${dl==null?'Optional. Add it to see a countdown.':dl>=0?dl+' days to go.':'That date has passed.'}</span></section>
+  <section class="card setrow"><label class="sw">Sound effects<input type="checkbox" id="snd" ${P.sound?'checked':''}></label><div class="muted">${sampleFn?'Claude question writing and grading are on.':'Grading and fresh questions need this page open in Claude.'} ${dict?'Voice input is on.':'Voice input is off here, so Speaking uses typing.'}</div></section>
+  <button class="btn ghost block" data-act="resetAsk">Reset progress</button></div>`;
+}
+
+/* ---------- sheets and overlays ---------- */
+function showSheet(html){$('#layer').innerHTML=`<div class="scrim" data-act="scrim">${html}</div>`;}
+function closeSheet(){$('#layer').innerHTML='';}
+function infoSheet(title,msg){showSheet(`<div class="sheet" role="dialog" aria-modal="true"><h2>${esc(title)}</h2><p>${esc(msg)}</p><button class="btn block" data-act="closeSheet">OK</button></div>`);}
+function startSheet(sk,t){
+  const b=bestMap()[sk+'|'+t.name],tg=P.target[P.exam];
+  const xp=(sk==='reading'||sk==='listening')?'10 to 30 XP':'20 to 40 XP';
+  const rules={listening:'The audio plays once. Read the questions first.',reading:'One question at a time, with a timer.',writing:'Timed. Spellcheck is off, like the real test.',speaking:'Allow the microphone, or type your answer.'}[sk];
+  showSheet(`<div class="sheet" data-skill="${sk}" role="dialog" aria-modal="true" aria-label="${esc(t.name)}"><div class="sh-h"><span class="badge-sk">${ic(sk)}</span><div><h2>${esc(t.name)}</h2><p class="muted">${esc(cap(t.hint))}</p></div></div><div class="chips">${taskMeta(t,sk).split(' · ').map(m=>`<span class="chip">${esc(m)}</span>`).join('')}<span class="chip gold">${xp}</span></div><p>${rules}</p>${b?`<p class="muted">Your best: ${esc(lbl(P.exam,b.lv))}. Target: ${esc(lbl(P.exam,tg))}.</p>`:''}<button class="btn block" data-act="start" data-arg="${sk}:${t.id}">Start lesson</button><button class="btn ghost block" data-act="closeSheet">Not now</button></div>`);
+}
+function tipsSheet(sk){showSheet(`<div class="sheet" data-skill="${sk}" role="dialog" aria-modal="true"><div class="sh-h"><span class="badge-sk">${ic('bulb')}</span><h2>${cap(sk)} tips</h2></div><div class="stack">${SKT[sk].map(t=>`<div class="good">${esc(t)}</div>`).join('')}</div><button class="btn block" data-act="closeSheet">Got it</button></div>`);}
+function courseSheet(){const cur=P.exam==='CELPIP'?'CELPIP':'IELTS:'+P.module;showSheet(`<div class="sheet" role="dialog" aria-modal="true"><h2>Choose your course</h2>${[['CELPIP','CELPIP','General test, levels 1 to 12'],['IELTS:Academic','IELTS Academic','Bands 0 to 9'],['IELTS:General','IELTS General Training','Bands 0 to 9']].map(([v,n,s])=>`<button class="pick ${cur===v?'on':''}" data-act="setCourse" data-arg="${v}"><span><b>${n}</b><small>${s}</small></span></button>`).join('')}</div>`);}
+function think(msgs,mood){
+  const el=$('#load');clearInterval(think.t);
+  if(!msgs){el.innerHTML='';return;}
+  let i=0;const draw=()=>{el.innerHTML=`<div class="load" role="status">${bandy(mood||'think',140)}<h2>${esc(msgs[i%msgs.length])}</h2><div class="dots"><i></i><i></i><i></i></div></div>`;};
+  draw();think.t=setInterval(()=>{i++;const h=$('#load h2');if(h)h.textContent=msgs[i%msgs.length];},1800);
+}
+
+/* ---------- views: onboarding ---------- */
+function viewOnboard(){
+  const o=S.ob,steps=P.exam==='IELTS'?4:3;const pos=P.exam==='CELPIP'&&o.step>1?o.step-1:o.step;
+  let q,body,can=true;
+  if(o.step===0){q='Which exam are you preparing for?';body=[['CELPIP','CELPIP','General test, levels 1 to 12'],['IELTS','IELTS','Academic or General Training, bands 0 to 9']].map(([v,n,s])=>`<button class="pick ${P.exam===v?'on':''}" data-act="obExam" data-arg="${v}"><span><b>${n}</b><small>${s}</small></span></button>`).join('');}
+  else if(o.step===1){q='Which IELTS version?';body=[['Academic','Academic','University and professional registration'],['General','General Training','Work, training and migration']].map(([v,n,s])=>`<button class="pick ${P.module===v?'on':''}" data-act="obMod" data-arg="${v}"><span><b>${n}</b><small>${s}</small></span></button>`).join('');}
+  else if(o.step===2){const e=P.exam,tg=e==='CELPIP'?[5,6,7,8,9,10,11,12]:[5,5.5,6,6.5,7,7.5,8,8.5];q=`What ${e==='CELPIP'?'level':'band'} do you need?`;body=`<div class="pgrid2">${tg.map(v=>`<button class="pick ${P.target[e]===v?'on':''}" data-act="obTarget" data-arg="${v}"><b>${v}</b></button>`).join('')}</div>`;}
+  else{q='How much do you want to practise each day?';body=[[20,'Casual','About one lesson a day'],[40,'Regular','Two lessons a day'],[60,'Serious','Three lessons a day'],[100,'Intense','Five lessons a day']].map(([v,n,s])=>`<button class="pick ${P.goal===v?'on':''}" data-act="obGoal" data-arg="${v}"><span><b>${n}</b><small>${v} XP · ${s}</small></span></button>`).join('');}
+  const last=o.step===3;
+  return `<div class="ob"><div class="lh">${o.step>0?`<button class="x" data-act="obBack" aria-label="Back">${ic('back')}</button>`:'<span style="width:36px"></span>'}<div class="pbar"><i style="width:${100*(pos+1)/steps}%"></i></div></div>
+  <div class="say">${bandy(o.step===0?'cheer':'happy',84)}<div class="bubble">${o.step===0?'Hi, I\'m Bandy. I\'ll turn exam prep into small daily wins. ':''}${esc(q)}</div></div>
+  <div class="stack">${body}</div>
+  <div class="abar"><div class="ab-in"><span></span><button class="btn" data-act="obNext">${last?'Start learning':'Continue'}</button></div></div></div>`;
+}
+
+/* ---------- views: lesson ---------- */
+function lessonHead(timed,pct){return `<header class="lh"><button class="x" data-act="quit" aria-label="Exit lesson">${ic('close')}</button><div class="pbar"><i id="pb" style="width:${pct}%"></i></div>${timed?`<span class="tchip">${ic('clock')}<span id="tm" class="timer">--:--</span></span>`:''}</header>`;}
+function viewLesson(){
+  const sk=S.skill;
+  if(sk==='speaking')return viewSpeaking();
+  if(sk==='writing')return viewWriting();
+  return viewRL();
+}
+function viewWriting(){const t=S.task,it=S.item;
+  return `<div class="lesson" data-skill="writing">${lessonHead(true,0)}${S.note?`<div class="note">${esc(S.note)}</div>`:''}<div class="lsplit"><section class="pcard sticky"><h2>Your task</h2><div class="prompt">${esc(it.prompt)}</div>${it.data?`<pre class="data">${esc(it.data)}</pre>`:''}</section>
+  <section class="qpane"><textarea id="wr" placeholder="Start typing your answer" spellcheck="false" autocomplete="off"></textarea><p class="muted" style="margin-top:8px">Spellcheck is off, as in the real test.</p></section></div>
+  <div class="abar"><div class="ab-in"><div class="wm"><span><b id="wc">0</b> words <span class="muted">· aim for ${t.words[0]}-${t.words[1]}+</span></span><div class="gbar"><i id="wb" style="width:0"></i></div></div><button class="btn" data-act="submitW">Submit</button></div></div></div>`;}
+function viewSpeaking(){
+  const sp=S.sp,st=sp.steps[sp.i],n=sp.steps.length;let ctrl='';const pct=100*(sp.i+(sp.phase==='speak'?.5:0))/n;
+  if(sp.phase==='prep')ctrl=`<span class="pill prep">Preparation time</span><div class="ring prep"><span id="tm" class="timer">--:--</span></div><p class="muted">Plan what you will say. Notes on paper are fine.</p><button class="btn ghost" data-act="skipPrep">Skip preparation</button>`;
+  else if(sp.phase==='ready')ctrl=`<span class="pill">${st.prep?'Preparation over':'Ready'}</span><p class="muted">You will have ${st.speak} seconds. Press the button, then start talking.</p><button class="btn" data-act="startSpeak" style="padding:16px 30px;font-size:18px">${ic('speaking')}Start speaking</button>`;
+  else ctrl=`<span class="pill rec" id="mic">${dict?'Starting mic':'Typing mode'}</span><div class="ring speak"><span id="tm" class="timer">--:--</span></div><textarea id="ta" placeholder="${dict?'Your words appear here as you speak. You can correct them.':'Voice input is not available here. Type your answer, or use the microphone on your keyboard.'}"></textarea><button class="btn" data-act="finishStep">Finish answer</button>`;
+  return `<div class="lesson" data-skill="speaking" style="padding-bottom:60px">${lessonHead(false,pct)}${S.note?`<div class="note">${esc(S.note)}</div>`:''}<div class="spk"><div class="say">${bandy(sp.phase==='speak'?'happy':'think',84)}<div class="bubble">${n>1?`<span class="muted" style="font:700 14px var(--body)">Question ${sp.i+1} of ${n}</span><br>`:''}${esc(st.prompt)}</div></div><div class="ctrl">${ctrl}</div></div></div>`;}
+function listenCard(){const it=S.item,can='speechSynthesis' in window;
+  return `<div class="pcard" id="pl"><h2>${esc(it.title||'Listening')}</h2><p class="muted">${can?'Read the questions first, then press play. The audio plays once, like the real exam.':'Audio is not supported in this browser. Show the script and read it instead.'}</p>
+  <div class="player">${can?`<button class="playbtn" id="play" data-act="play" aria-label="Play audio">${ic('play')}</button><div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>`:''}<span id="lstat" class="muted"></span></div>
+  <label class="sw muted">Allow replay<input type="checkbox" id="replay"></label><button class="btn ghost sm" data-act="showScript" style="align-self:flex-start">Show script</button><div id="scr" class="passage"></div></div>`;}
+function qHtml(){const r=S.rl,qs=S.item.qs,q=qs[r.i],a=r.answers[r.i],done=r.checked;let body;
+  if(q.type==='fill')body=`<input type="text" id="fillin" class="fill" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type your answer" value="${esc(r.sel||'')}" ${done?'disabled':''}>`;
+  else body=q.options.map((o,k)=>{let c='opt';if(done){if(k===q.correct)c+=' right';else if(a&&a.a===k)c+=' wrong';}else if(r.sel===k)c+=' sel';return `<button class="${c}" data-act="pick" data-arg="${k}" ${done?'disabled':''}><span class="k">${q.type==='mcq'?'ABCD'[k]:k+1}</span><span>${esc(o)}</span></button>`;}).join('');
+  return `<div class="qmeta">Question ${r.i+1} of ${qs.length}</div><div class="qtext">${esc(q.q)}</div>${body}`;}
+function abarHtml(){const r=S.rl,qs=S.item.qs,q=qs[r.i];
+  if(!r.checked)return `<div class="ab-in"><button class="btn ghost" data-act="skipQ">Skip</button><button class="btn" id="chk" data-act="check" ${r.sel==null||r.sel===''?'disabled':''}>Check</button></div>`;
+  const a=r.answers[r.i],last=r.i===qs.length-1;
+  const corr=q.type==='fill'?q.display:(q.type==='mcq'?'ABCD'[q.correct]+'. ':'')+q.options[q.correct];
+  return `<div class="ab-in"><div class="fb-t">${icf(a.ok?'right':'wrong')}<div><b>${a.ok?rnd(['Correct!','Nice one!','Spot on!','Well done!']):a.a==null?'Skipped':'Not quite'}</b><span class="tx">${a.ok?'':'Answer: '+esc(corr)+'. '}${esc(q.why)}</span><span class="tag">${esc(q.skill)}</span></div></div><button class="btn" data-act="next">${last?'Finish':'Continue'}</button></div>`;}
+function viewRL(){const sk=S.skill,it=S.item,r=S.rl;
+  const left=sk==='reading'?`<div class="pcard"><h2>${esc(it.title||'Passage')}</h2><div class="passage">${esc(it.passage)}</div></div>`:listenCard();
+  return `<div class="lesson" data-skill="${sk}">${lessonHead(sk==='reading',0)}${S.note?`<div class="note">${esc(S.note)}</div>`:''}
+  <div class="seg"><button data-act="pane" data-arg="p" class="${r.pane==='p'?'on':''}">${sk==='reading'?'Passage':'Audio'}</button><button data-act="pane" data-arg="q" class="${r.pane==='q'?'on':''}">Questions</button></div>
+  <div class="lsplit" id="lsp" data-pane="${r.pane}"><section class="ppane">${left}</section><section class="qpane" id="qpane">${qHtml()}</section></div>
+  <div class="abar" id="abar">${abarHtml()}</div></div>`;}
+function paintQ(){const r=S.rl,n=S.item.qs.length;
+  $('#qpane').innerHTML=qHtml();const ab=$('#abar');ab.className='abar'+(r.checked?(r.answers[r.i].ok?' ok':' no'):'');ab.innerHTML=abarHtml();
+  const pb=$('#pb');if(pb)pb.style.width=(100*(r.i+(r.checked?1:0))/n)+'%';
+  const f=$('#fillin');if(f&&!r.checked)f.focus({preventScroll:true});}
+
+/* ---------- views: results ---------- */
+function ring(f,big,small){const C=2*Math.PI*52,d=Math.max(0,Math.min(1,f))*C;return `<div class="ring2"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" class="r0"/><circle cx="60" cy="60" r="52" class="r1" stroke-dasharray="${d.toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 60 60)"/></svg><div class="sc"><b>${esc(big)}</b><span>${esc(small)}</span></div></div>`;}
+function viewResult(){
+  const r=S.result,g=S.gain||{xp:0},sk=S.skill;
+  if(r.kind==='mr')return `<div class="res" data-skill="writing"><div class="cele">${bandy('cheer',150)}<h1>Mistakes reviewed</h1><p class="sub">${r.got} of ${r.total} corrections now feel solid.</p></div><div class="tiles" style="grid-template-columns:repeat(2,1fr)"><div class="tile t-xp"><div class="th">XP earned</div><div class="tv">${icf('bolt')}+${g.xp}</div></div><div class="tile t-ac"><div class="th">Got it</div><div class="tv">${r.got}/${r.total}</div></div></div>${bannerHtml(g)}<div class="abar"><div class="ab-in"><span></span><button class="btn" data-act="home">Continue</button></div></div></div>`;
+  const tg=P.target[P.exam],lv=r.lv!=null?r.lv:r.overall,good=lv>=tg,near=lv>=tg-1;
+  const mood=good?'cheer':near?'happy':'think';
+  const head=good?'You hit your target!':near?'Nice work. Almost there.':'Good practice. Keep going.';
+  const third=r.kind==='rl'?`<div class="tile t-ac"><div class="th">Accuracy</div><div class="tv">${r.pct}%</div></div>`:`<div class="tile t-ac"><div class="th">${sk==='writing'?'Words':'Words spoken'}</div><div class="tv">${(r.meta&&r.meta.words)||0}</div></div>`;
+  let detail;
+  if(r.kind==='rl')detail=resRL(r);else detail=resWS(r);
+  return `<div class="res" data-skill="${sk}"><div class="cele">${bandy(mood,150)}<h1>${head}</h1><p class="sub">Estimated ${esc(lbl(P.exam,lv))}. Your target is ${esc(lbl(P.exam,tg))}.</p></div>
+  <div class="tiles"><div class="tile t-xp"><div class="th">XP earned</div><div class="tv">${icf('bolt')}+${g.xp}</div></div><div class="tile t-lv"><div class="th">${P.exam==='CELPIP'?'Level':'Band'}</div><div class="tv">${esc(lv)}</div></div>${third}</div>
+  ${bannerHtml(g)}${detail}
+  <div class="abar"><div class="ab-in"><button class="btn ghost" data-act="again">Try another</button><button class="btn" data-act="home">Continue</button></div></div></div>`;
+}
+function bannerHtml(g){let h='';
+  if(g.streakUp)h+=`<div class="banner">${icf('flame','fl')}<div><b>${g.streak} day streak</b><div class="muted">You practised today. Come back tomorrow to keep it going.</div></div></div>`;
+  if(g.goalHit)h+=`<div class="banner" style="border-color:color-mix(in srgb,var(--gold) 60%,transparent);background:color-mix(in srgb,var(--gold) 14%,var(--surface))">${icf('star','gd')}<div><b>Daily goal reached</b><div class="muted">${P.goal} XP done for today.</div></div></div>`;
+  return h;}
+function resRL(r){const it=S.item,qs=it.qs,misses=Object.entries(r.miss).sort((a,b)=>b[1]-a[1]);
+  return `<section class="card"><h3>${misses.length?'Where you lost marks':'Clean sheet'}</h3>${misses.length?misses.map(([k,n])=>`<div class="miss"><b>${esc(cap(k))}</b> (${n} missed)<br><span class="muted">${esc(TIPS[k]||'Find the exact sentence that proves the answer, then check why your choice fails.')}</span></div>`).join(''):'<p>Every answer was right. Try a harder part next.</p>'}</section>
+  <section class="card"><h3>Question review</h3>${qs.map((q,i)=>{const x=r.res[i];const yours=x.a==null||x.a===''?'No answer':q.type==='fill'?x.a:(q.type==='mcq'?'ABCD'[x.a]+'. ':'')+q.options[x.a];const corr=q.type==='fill'?q.display:(q.type==='mcq'?'ABCD'[q.correct]+'. ':'')+q.options[q.correct];
+    return `<div class="qrev"><div><b>${i+1}. ${esc(q.q)}</b> <span class="${x.ok?'ok':'no'}">${x.ok?'Correct':'Wrong'}</span></div><div class="muted">Your answer: ${esc(yours)}${x.ok?'':` · Correct: <b>${esc(corr)}</b>`}</div><div>${esc(q.why)}</div></div>`;}).join('')}</section>
+  ${S.skill==='listening'?`<details class="card"><summary>Script</summary><div class="passage">${esc(it.script.map(s=>s.speaker+': '+s.text).join('\n'))}</div></details>`:''}`;}
+function resWS(r){const max=maxLv(),m=r.meta||{};const tab=S.rtab;
+  const tc=countTypes(r.errors.map(e=>e.type||'error'));
+  const tabs=[['scores','Scores'],['mistakes','Mistakes'],['improve','Improve'],['model','Model']];
+  let c='';
+  if(tab==='scores')c=`<section class="card" style="align-items:stretch">${ring(r.overall/max,String(r.overall),'of '+max)}<p style="text-align:center">${esc(r.summary)}</p><p class="muted" style="text-align:center">Unofficial estimate. Examiners can differ by about one ${P.exam==='CELPIP'?'level':'half band'}.</p></section>
+  <section class="card"><h3>Scores by criterion</h3>${r.criteria.map(x=>`<div class="crit"><div class="h"><span>${esc(x.name)}</span><span>${x.score==null?'Not assessed':esc(x.score)+' / '+(x.max||max)}</span></div>${x.score==null?'':`<div class="bar2"><i style="width:${Math.max(0,Math.min(100,100*x.score/(x.max||max)))}%"></i></div>`}<div class="muted">${esc(x.comment)}</div></div>`).join('')}${S.skill==='speaking'?'<p class="muted">Pronunciation, accent and intonation are not assessed. Gap counts come from speech-to-text timing and are only a rough guide.</p>':''}</section>
+  ${r.strengths.length?`<section class="card"><h3>What worked</h3>${r.strengths.map(s=>`<div class="good">${esc(s)}</div>`).join('')}</section>`:''}`;
+  else if(tab==='mistakes')c=`<section class="card"><h3>Your mistakes</h3>${r.errors.length?`<div class="counts">${Object.entries(tc).map(([k,n])=>`<span class="cnt">${esc(k)} ${n}</span>`).join('')}</div>`:'<p class="muted">No specific errors were flagged.</p>'}</section>${r.errors.map(e=>`<div class="err"><div class="t">${esc(e.type||'error')}</div><div class="bad">${esc(e.quote)}</div><div class="fix">${esc(e.fix)}</div><div class="muted">${esc(e.why)}</div></div>`).join('')}`;
+  else if(tab==='improve')c=`<section class="card"><h3>Fix these first</h3>${r.priorities.length?`<ol class="steps">${r.priorities.map(p=>`<li>${esc(p)}</li>`).join('')}</ol>`:'<p class="muted">No priorities returned.</p>'}</section>${r.drills.map(d=>`<div class="drill"><h3>${esc(d.title)}</h3><ul class="steps">${(d.steps||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>`).join('')}`;
+  else c=`<section class="card"><h3>Model answer</h3><div class="prompt">${esc(r.model)}</div></section><details class="card"><summary>Your answer</summary><div class="prompt">${esc(S.skill==='writing'?m.text:(m.speaking||[]).map((a,i)=>'Q'+(i+1)+': '+a.text).join('\n\n'))}</div></details>`;
+  const stats=S.skill==='speaking'&&tab==='scores'?`<div class="tiles" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">${(m.speaking||[]).map((a,i)=>`<div class="tile" style="--c0:var(--line)"><div class="th" style="color:var(--ink)">Q${i+1}</div><div class="tv" style="font-size:20px">${a.secs}s / ${a.limit}s</div><div class="muted" style="padding-bottom:8px">${a.wpm} wpm · ${a.pauses} gaps</div></div>`).join('')}</div>`:'';
+  return `<div class="tabs" role="tablist">${tabs.map(([k,n])=>`<button class="${tab===k?'on':''}" data-act="rtab" data-arg="${k}">${n}</button>`).join('')}</div>${stats}${c}`;}
+function countTypes(a){const o={};a.forEach(t=>{o[t]=(o[t]||0)+1;});return o;}
+
+/* ---------- views: mistake review ---------- */
+function mistakeItems(){const seen=new Set(),out=[];hist().slice().reverse().forEach(x=>(x.mk||[]).forEach(m=>{if(m&&m.q&&!seen.has(m.q)){seen.add(m.q);out.push(m);}}));return out.slice(0,40);}
+function viewMistakes(){const m=S.mr,it=m.items[m.i];
+  return `<div class="lesson" data-skill="writing" style="padding-bottom:60px">${lessonHead(false,100*m.i/m.items.length)}<div class="spk"><div class="muted" style="text-align:center">Card ${m.i+1} of ${m.items.length}</div>
+  <section class="card fc"><span class="chip" style="align-self:center">${esc(it.t||'mistake')}</span><div class="q" style="text-decoration:line-through;text-decoration-color:var(--bad);color:var(--mut)">${esc(it.q)}</div>
+  ${m.show?`<div class="fix good" style="font-weight:800">${esc(it.f)}</div><div class="muted">${esc(it.w||'')}</div>`:'<p class="muted">How would you fix this?</p>'}</section>
+  ${m.show?`<div style="display:flex;gap:12px;justify-content:center"><button class="btn ghost" data-act="mrNo">Still tricky</button><button class="btn" data-act="mrYes">Got it</button></div>`:`<div style="text-align:center"><button class="btn" data-act="mrShow">Show the fix</button></div>`}</div></div>`;}
+
+/* ---------- render ---------- */
+function render(scroll){
+  document.documentElement.dataset.exam=P.exam;
+  const v=S.view;let h;
+  if(!P.onboarded)h=viewOnboard();
+  else if(v==='lesson')h=viewLesson();
+  else if(v==='mistakes')h=viewMistakes();
+  else if(v==='result')h=viewResult();
+  else h=viewShell();
+  $('#app').innerHTML=h;
+  if(scroll)window.scrollTo(0,0);
+  if(P.onboarded&&v==='home'){paintCap();if(S.focusNext){S.focusNext=false;const n=$('.node.next');if(n&&n.scrollIntoView)n.scrollIntoView({block:'center'});}}
+  if(v==='result'&&S.fx){S.fx=false;const r=S.result;const ok=r.kind==='mr'||(r.pct!=null?r.pct>=50:r.overall>=P.target[P.exam]-2);if(ok){confetti(r.kind==='mr'?90:(r.lv>=P.target[P.exam]?200:110));tone(SND.done);}}
+}
+function leave(){stopTimer();stopSpeech();if(dict){try{dict.stop();}catch(e){}}S.sp=null;S.rl=null;think(null);}
+
+/* ---------- lesson control ---------- */
+async function startTask(sk,id){
+  const task=getTasks(sk).find(t=>t.id===id);if(!task)return;
+  closeSheet();S.skill=sk;S.task=task;S.played=false;S.note='';stopSpeech();
+  think(['Writing your question','Choosing a topic','Checking the difficulty']);
+  let item;
+  try{item=await generate(task);if(sk==='reading'||sk==='listening')item=prepRL(item);}
+  catch(e){item=fallback(task);if(sk==='reading'||sk==='listening')item=prepRL(item);
+    S.note=e&&e.code==='nosample'?'Using a built-in question. Open this page in Claude for fresh ones.':e&&e.code==='not_granted'?'Permission to use Claude was declined, so this question comes from the built-in bank.':'Could not write a fresh question, so this one is from the built-in bank.';}
+  think(null);S.item=item;S.view='lesson';
+  if(sk==='speaking'){const e=P.exam;const st=e==='CELPIP'?[{prompt:item.prompts[0],prep:task.prep,speak:task.speak}]:item.prompts.slice(0,task.n).map(p=>({prompt:p,prep:task.steps[0],speak:task.steps[1]}));
+    S.sp={steps:st,i:0,answers:[],phase:st[0].prep?'prep':'ready'};}
+  if(sk==='reading'||sk==='listening')S.rl={i:0,sel:null,checked:false,answers:[],pane:'q'};
+  render(true);
+  if(sk==='writing')startTimer(task.min*60,'#tm',()=>{const v=$('#wr')?$('#wr').value:'';if(words(v)>=5)gradeWriting(v);else{infoSheet('Time is up','You did not write enough to grade. Try again when you are ready.');A.home();}});
+  if(sk==='reading')startTimer(task.min*60,'#tm',()=>finishRL());
+  if(sk==='speaking'&&S.sp.phase==='prep')startTimer(S.sp.steps[0].prep,'#tm',()=>{S.sp.phase='ready';render();});
+}
+function act(){const sp=S.sp;if(!sp)return;const n=Date.now();if(sp.latency==null)sp.latency=(n-sp.t0)/1000;else if(n-sp.last>2500)sp.pauses++;sp.last=n;}
+
+/* ---------- grading ---------- */
+function rubric(){
+  const e=P.exam,sk=S.skill;
+  if(e==='CELPIP')return sk==='writing'?'CELPIP Writing, 4 criteria each scored 1-12 (CELPIP level): "Content/Coherence", "Vocabulary", "Readability" (grammar, spelling, punctuation, paragraphing), "Task Fulfillment". Overall = average, rounded to a whole level 1-12.':'CELPIP Speaking, 4 criteria each scored 1-12: "Content/Coherence", "Vocabulary", "Listenability" (as inferable from the transcript only), "Task Fulfillment". Overall = average, rounded to a whole level 1-12.';
+  return sk==='writing'?'IELTS Writing bands 0-9 in half-bands: "Task Achievement/Response", "Coherence and Cohesion", "Lexical Resource", "Grammatical Range and Accuracy". Overall = average rounded to nearest half band (Task 2 counts more in real life; mention if under the word limit).':'IELTS Speaking bands 0-9 in half-bands: "Fluency and Coherence", "Lexical Resource", "Grammatical Range and Accuracy", "Pronunciation". Pronunciation cannot be judged from a transcript: set its score to null and say so; average only the other three.';
+}
+const OUT='Return ONLY JSON: {"overall":number,"criteria":[{"name":string,"score":number|null,"max":number,"comment":string}],"strengths":[string],"errors":[{"quote":string (EXACT substring from the candidate text),"type":"grammar"|"vocabulary"|"spelling"|"punctuation"|"coherence"|"task"|"style"|"fluency","fix":string (corrected version),"why":string (short rule or reason)}],"priorities":[string (top 3 things to improve, most important first)],"drills":[{"title":string,"steps":[string]}] (2-3 specific drills targeting THIS candidate\'s errors),"model_answer":string (a strong answer at the candidate\'s target level, same task),"summary":string (2 sentences)}. List up to 10 of the most important errors; prefer errors that repeat or cost the most marks.';
+function record(o){
+  const before=stats();const xp=o.base+Math.round(Math.max(0,Math.min(100,o.pct))/100*20);
+  addHist({ts:Date.now(),exam:P.exam,module:P.module,skill:o.skill||S.skill,taskId:S.task&&S.task.id,task:o.task||(S.task&&S.task.name),score:o.score,lv:o.lv,label:o.label,xp,err:o.err||{},mk:o.mk||[]});
+  const after=stats();S.gain={xp,streak:after.streak,streakUp:!before.doneToday,goalHit:before.today<P.goal&&after.today>=P.goal};
+}
+function normRes(r,meta){const o=Number(r.overall);const v=isFinite(o)?o:0;return {kind:'ws',overall:v,lv:v,label:lbl(P.exam,isFinite(o)?o:'?'),criteria:Array.isArray(r.criteria)?r.criteria:[],strengths:r.strengths||[],errors:(r.errors||[]).filter(e=>e&&e.quote),priorities:r.priorities||[],drills:r.drills||[],model:r.model_answer||'',summary:r.summary||'',meta};}
+async function runGrade(prompt,meta){
+  think(['Reading your answer','Checking grammar and vocabulary','Comparing with the exam criteria','Writing your feedback']);
+  try{const r=await askJSON(prompt,{modelTier:'default'});const res=normRes(r,meta);S.result=res;
+    record({pct:100*res.overall/maxLv(),base:20,score:res.overall,lv:res.overall,label:res.label,err:countTypes(res.errors.map(e=>e.type||'error')),mk:res.errors.slice(0,5).map(e=>({q:e.quote,f:e.fix,w:e.why,t:e.type}))});
+    S.view='result';S.rtab='scores';S.fx=true;}
+  catch(e){think(null);infoSheet('Grading did not finish',e&&e.code==='not_granted'?'Grading needs permission to use Claude. Submit again and allow it.':e&&e.code==='nosample'?'Grading works when this page is open in Claude.':'The reply could not be read. Your answer is still here, so submit it again.');
+    if(S.skill==='speaking'&&S.sp){S.sp.answers.pop();S.sp.phase='speak';}return;}
+  think(null);render(true);
+}
+function gradeWriting(text){
+  const t=S.task,it=S.item,wc=words(text);stopTimer();
+  runGrade(`You are a strict, fair certified ${P.exam} ${S.skill} examiner. Grade this candidate's answer using ${rubric()}\nBe realistic: do not inflate. Penalise being under the word target (${t.words[0]}+), off-topic content, memorised templates, and repeated errors. Remember this is an unofficial estimate.\n\nTASK (${P.exam}${P.exam==='IELTS'?' '+P.module:''}, ${t.name}):\n${it.prompt}\n${it.data?'DATA:\n'+it.data+'\n':''}\nCANDIDATE ANSWER (${wc} words, written in ${t.min} minutes allowed):\n"""\n${text}\n"""\n\n${OUT}`,{words:wc,text});
+}
+function gradeSpeaking(){
+  const sp=S.sp,total=sp.answers.reduce((a,x)=>a+x.words,0);
+  const blocks=sp.answers.map((a,i)=>`Q${i+1}: ${a.prompt}\nTime used: ${a.secs}s of ${a.limit}s · words: ${a.words} · speed: ${a.wpm} wpm · hesitation gaps over 2.5s: ${a.pauses}${a.latency!=null?' · first words after '+a.latency+'s':''}\nTRANSCRIPT: """${a.text||'(no answer)'}"""`).join('\n\n');
+  runGrade(`You are a strict, fair certified ${P.exam} speaking examiner. You only have a speech-to-text transcript (which usually removes fillers and corrects some slips) plus rough timing data. Grade using ${rubric()}\nUse the timing data for fluency (very short answers, long gaps, or very slow/fast speed matter) but state clearly that pronunciation, intonation and accent could not be assessed. Do not inflate scores; blank or one-line answers score very low. Remember this is an unofficial estimate.\n\nTASK (${P.exam}${P.exam==='IELTS'?' '+P.module:''}, ${S.task.name}):\n${blocks}\n\n${OUT}\nFor "quote" copy exact words from a transcript. For "model_answer" give a strong spoken-style answer to the first question (natural, not essay-like).`,{speaking:sp.answers,words:total});
+}
+function finishRL(){
+  if(S.view!=='lesson'||!S.rl)return;stopTimer();stopSpeech();
+  const it=S.item,qs=it.qs,r=S.rl;
+  const res=qs.map((q,i)=>r.answers[i]||{ok:false,a:null});
+  const right=res.filter(x=>x.ok).length,pct=Math.round(100*right/qs.length);
+  const miss={};res.forEach((x,j)=>{if(!x.ok)miss[qs[j].skill]=(miss[qs[j].skill]||0)+1;});
+  const lv=pctNum(pct,P.exam),label=lbl(P.exam,lv);
+  S.result={kind:'rl',right,total:qs.length,pct,lv,label,res,miss,overall:pct};
+  record({pct,base:10,score:pct,lv,label:label+' ('+right+'/'+qs.length+')',err:miss});
+  S.view='result';S.fx=true;S.rl=null;render(true);
+}
+
+/* ---------- actions ---------- */
+const A={
+  tab:v=>{leave();closeSheet();S.tab=v;S.view='home';render(true);},
+  home:()=>{leave();closeSheet();S.view='home';S.tab='learn';S.focusNext=true;render(true);},
+  course:()=>courseSheet(),
+  setCourse:v=>{const[e,m]=v.split(':');P.exam=e;if(m)P.module=m;saveP();closeSheet();render();},
+  open:v=>{const[sk,id]=v.split(':');const t=getTasks(sk).find(x=>x.id===id);if(t)startSheet(sk,t);},
+  start:v=>{const[sk,id]=v.split(':');startTask(sk,id);},
+  quick:sk=>startTask(sk,rnd(getTasks(sk)).id),
+  surprise:()=>{const sk=rnd(SKL);startTask(sk,rnd(getTasks(sk)).id);},
+  tips:sk=>tipsSheet(sk),
+  scrim:(a,b,e)=>{if(e.target===b)closeSheet();},
+  closeSheet:()=>closeSheet(),
+  quit:()=>showSheet(`<div class="sheet" role="dialog" aria-modal="true"><h2>Quit this lesson?</h2><p>Your progress in this lesson will be lost.</p><button class="btn block" data-act="closeSheet">Keep going</button><button class="btn ghost block" data-act="home">Quit lesson</button></div>`),
+  setTarget:v=>{P.target[P.exam]=Number(v);saveP();render();},
+  setGoal:v=>{P.goal=Number(v);saveP();render();},
+  resetAsk:()=>showSheet(`<div class="sheet" role="dialog" aria-modal="true"><h2>Reset all progress?</h2><p>This clears your streak, XP and lesson history on this device.</p><button class="btn ghost block" data-act="closeSheet">Cancel</button><button class="btn block" data-act="resetYes" style="--c:var(--bad);--cd:color-mix(in srgb,var(--bad) 68%,#000)">Reset progress</button></div>`),
+  resetYes:()=>{HIST=[];svJ(LSH,[]);try{localStorage.removeItem(LSO);}catch(e){}closeSheet();render();},
+  /* onboarding */
+  obExam:v=>{P.exam=v;render();},obMod:v=>{P.module=v;render();},obTarget:v=>{P.target[P.exam]=Number(v);render();},obGoal:v=>{P.goal=Number(v);render();},
+  obNext:()=>{const o=S.ob;if(o.step===0&&P.exam==='CELPIP')o.step=2;else if(o.step<3)o.step++;else{P.onboarded=true;saveP();S.view='home';S.tab='learn';render(true);return;}render(true);},
+  obBack:()=>{const o=S.ob;if(o.step===2&&P.exam==='CELPIP')o.step=0;else o.step=Math.max(0,o.step-1);render(true);},
+  /* reading + listening */
+  pane:v=>{S.rl.pane=v;const ls=$('#lsp');if(ls)ls.dataset.pane=v;$$('.seg button').forEach(b=>b.classList.toggle('on',b.dataset.arg===v));},
+  pick:v=>{const r=S.rl;if(r.checked)return;r.sel=Number(v);$$('.opt').forEach((b,k)=>b.classList.toggle('sel',k===r.sel));const c=$('#chk');if(c)c.disabled=false;},
+  check:()=>{const r=S.rl,q=S.item.qs[r.i];if(r.checked||r.sel==null||String(r.sel).trim()==='')return;
+    const ok=q.type==='fill'?q.accept.includes(norm(r.sel)):r.sel===q.correct;
+    r.answers[r.i]={ok,a:r.sel};r.checked=true;tone(ok?SND.good:SND.bad);buzz(ok?15:[30,40,30]);paintQ();},
+  skipQ:()=>{const r=S.rl;if(r.checked)return;r.answers[r.i]={ok:false,a:null};r.checked=true;tone(SND.bad);paintQ();},
+  next:()=>{const r=S.rl,n=S.item.qs.length;if(!r.checked)return;if(r.i>=n-1){finishRL();return;}r.i++;r.sel=null;r.checked=false;paintQ();},
+  play:()=>{const it=S.item,btn=$('#play'),st=$('#lstat');
+    if(S.played&&!$('#replay').checked){if(st)st.textContent='Audio already played once. Turn on replay to hear it again.';return;}
+    S.played=true;btn.disabled=true;if(st)st.textContent='Playing';$('#pl').classList.add('live');
+    if(!speakScript(it.script,()=>{if(st)st.textContent='Audio finished.';btn.disabled=false;$('#pl').classList.remove('live');})){if(st)st.textContent='Audio not supported here.';btn.disabled=false;$('#pl').classList.remove('live');}},
+  showScript:()=>{stopSpeech();const pl=$('#pl');if(pl)pl.classList.remove('live');const b=$('#play');if(b)b.disabled=false;$('#scr').textContent=S.item.script.map(s=>s.speaker+': '+s.text).join('\n');},
+  /* writing */
+  submitW:()=>{const v=$('#wr').value;if(words(v)<20){infoSheet('Write a little more','Write at least a few sentences before you submit.');return;}gradeWriting(v);},
+  /* speaking */
+  skipPrep:()=>{stopTimer();S.sp.phase='ready';render();},
+  startSpeak:()=>{const sp=S.sp,st=sp.steps[sp.i];sp.phase='speak';render();sp.t0=Date.now();sp.last=sp.t0;sp.pauses=0;sp.latency=null;sp.base='';
+    if(dict){try{const p=dict.start();p&&p.catch&&p.catch(()=>{const m=$('#mic');if(m)m.textContent='Mic blocked. Type instead';});}catch(e){}}
+    startTimer(st.speak,'#tm',()=>A.finishStep());},
+  finishStep:async()=>{const sp=S.sp;if(!sp||sp.busy||sp.phase!=='speak')return;sp.busy=true;stopTimer();if(dict){try{await dict.stop();}catch(e){}}
+    const ta=$('#ta');const text=(ta?ta.value:'').trim();const secs=Math.max(1,Math.round((Date.now()-sp.t0)/1000));const w=words(text);
+    sp.answers.push({prompt:sp.steps[sp.i].prompt,text,secs,limit:sp.steps[sp.i].speak,words:w,wpm:Math.round(w/(secs/60)),pauses:sp.pauses,latency:sp.latency==null?null:Math.round(sp.latency*10)/10});
+    sp.busy=false;if(sp.i<sp.steps.length-1){sp.i++;sp.phase=sp.steps[sp.i].prep?'prep':'ready';render();if(sp.phase==='prep')startTimer(sp.steps[sp.i].prep,'#tm',()=>{sp.phase='ready';render();});}
+    else gradeSpeaking();},
+  again:()=>startTask(S.skill,S.task.id),
+  rtab:v=>{S.rtab=v;render();},
+  /* mistake review */
+  mrStart:()=>{const a=mistakeItems().slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}S.mr={items:a.slice(0,10),i:0,show:false,got:0};S.view='mistakes';render(true);},
+  mrShow:()=>{S.mr.show=true;render();},
+  mrYes:()=>{S.mr.got++;tone(SND.good);A.mrNext();},mrNo:()=>A.mrNext(),
+  mrNext:()=>{const m=S.mr;if(m.i<m.items.length-1){m.i++;m.show=false;render();return;}
+    const before=stats();const xp=5+m.got*2;addHist({ts:Date.now(),exam:P.exam,module:P.module,skill:'review',task:'Mistake review',score:m.got,lv:0,label:m.got+'/'+m.items.length+' fixed',xp,err:{},mk:[]});
+    const after=stats();S.gain={xp,streak:after.streak,streakUp:!before.doneToday,goalHit:before.today<P.goal&&after.today>=P.goal};
+    S.result={kind:'mr',got:m.got,total:m.items.length};S.skill='writing';S.view='result';S.fx=true;render(true);}
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const f=A[b.dataset.act];if(f)f(b.dataset.arg,b,e);});
+document.addEventListener('input',e=>{const t=e.target;
+  if(t.id==='wr'){const n=words(t.value);const c=$('#wc');if(c)c.textContent=n;const b=$('#wb');if(b&&S.task&&S.task.words){const w=Math.min(100,100*n/S.task.words[0])+'%';b.style.width=w;const pb=$('#pb');if(pb)pb.style.width=w;}}
+  if(t.id==='ta'&&S.sp)S.sp.base=t.value;
+  if(t.id==='fillin'&&S.rl){S.rl.sel=t.value;const c=$('#chk');if(c)c.disabled=!t.value.trim();}});
+document.addEventListener('change',e=>{const t=e.target;
+  if(t.id==='edate'){P.date=t.value;saveP();const d=daysLeft(),el=$('#dleft');if(el)el.textContent=d==null?'Optional. Add it to see a countdown.':d>=0?d+' days to go.':'That date has passed.';}
+  if(t.id==='snd'){P.sound=t.checked;saveP();if(P.sound)tone(SND.good);}});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&$('#layer').innerHTML){closeSheet();return;}
+  if(S.view!=='lesson'||!S.rl||$('#layer').innerHTML)return;
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(e.key==='Enter'&&tag!=='textarea'){e.preventDefault();if(S.rl.checked)A.next();else A.check();return;}
+  if(tag!=='input'&&!S.rl.checked&&/^[1-4]$/.test(e.key)){const q=S.item.qs[S.rl.i];if(q.type!=='fill'&&Number(e.key)<=q.options.length)A.pick(String(Number(e.key)-1));}
+});
+
+render();
+window.__t={normQ,norm,pctNum,words,fmt,starsOf,stats,lvOf};
+
+/* ---- Bandwise v2: 50-item banks, examiner onboarding, strict test briefing ---- */
+(function(){
+const T='public transport|online shopping|working from home|learning a language|recycling|fast food|social media|city parking|public libraries|gym memberships|remote learning|community gardens|tourism|electric cars|part-time jobs|neighbourhood noise|healthy eating|volunteering|airport delays|rental housing|video games|school uniforms|air pollution|bike lanes|tipping in restaurants|noisy roommates|online banking|streaming services|traffic congestion|local festivals|childcare|art classes|weekend markets|smartphone use|plastic bags|study abroad|job interviews|cooking at home|public parks|free museum entry|four-day work weeks|house prices|elderly care|team sports|coffee shops|cinema trips|language exchange|power outages|flight prices|street safety'.split('|');
+const O=['Maple Ridge Library','Harbour Fitness Centre','Greenfield Community Hall','Riverside Medical Clinic','Northgate Recreation Centre','Oakwood Language School','Central City Pool','Lakeview Art Gallery','Westside Job Centre','Sunrise Day Care'];
+const V=['evening classes','weekend workshops','a new membership plan','extended opening hours','a free orientation session'];
+const D=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],M='January February March April May June July August September October November December'.split(' '),NM=['Ms Patel','Mr Chen','Ms Olsen','Mr Diaz','Ms Okafor'];
+const mc=(c,ds,pos)=>{const a=ds.slice();a.splice(pos,0,c);return {options:a,answer:'ABCD'[pos]};};
+function wr(t,i){const ex=P.exam,id=S.task.id,a=40+i%30;
+ if(ex==='CELPIP')return {prompt:id==='W1'?`You have a problem related to ${t}. Write an email to the person in charge. Explain the problem, describe how it has affected you, and say what you would like them to do.`:`Your community is deciding about ${t}.\nOption A: invest more money now.\nOption B: wait and review next year.\nWhich option do you prefer? Explain your choice with reasons and examples.`};
+ if(id==='W2')return {prompt:`Some people believe that ${t} should be a top priority for the government. Others disagree.\nDiscuss both views and give your own opinion.`};
+ if(P.module==='Academic')return {prompt:`The table shows figures for ${t} in four countries in 2005, 2015 and 2025.\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.`,data:`Country | 2005 | 2015 | 2025\nA | ${a} | ${a+14} | ${a+25}\nB | ${a-20} | ${a+3} | ${a+30}\nC | ${a+9} | ${a+12} | ${a+18}\nD | ${a-30} | ${a-12} | ${a+8}`};
+ return {prompt:`You have a problem connected with ${t}. Write a letter to the person responsible. In your letter:\n• describe the problem\n• explain what you have already done\n• say what you would like them to do\n\nBegin your letter "Dear Sir or Madam,".`};}
+function sp(t,i){const id=S.task.id,ex=P.exam;
+ if(ex==='IELTS'){if(id==='S1')return [`Do you like ${t}? Why or why not?`,`How has ${t} changed in your country in recent years?`,`Is ${t} popular with young people where you live?`,`What is the best thing about ${t}?`,`Would you like to be more involved in ${t}? Why?`];
+  if(id==='S2')return [`Describe an experience you had related to ${t}.\nYou should say:\n• when it happened\n• who you were with\n• what happened\nand explain why it was memorable.`];
+  return [`Why do some people care more about ${t} than others?`,`Should the government do more about ${t}?`,`How might ${t} change in the next 20 years?`,`What are the disadvantages of ${t}?`];}
+ const sc=`Scene: a place connected with ${t}.\n• Several people are standing in a line.\n• A man at the front holds a sign.\n• A child points at something nearby.\n• Bags and boxes are on the ground.\n• The weather is sunny.\n`;
+ return [{S1:`A friend is struggling with ${t} and asks for your advice. Give him advice.`,S2:`Talk about a time when ${t} played a part in your life. What happened?`,S3:sc+'Describe what you see.',S4:sc+'Predict what will happen next.',S5:`You are choosing between two options about ${t}. Option A costs $${50+i*3%90} and is close to home. Option B costs $${80+i*5%120} but offers more features. Choose one and persuade a family member.`,S6:`You have a serious problem with ${t} and need help from a manager. Explain the problem and ask for a solution.`,S7:`Do you think ${t} has a mostly positive effect on society? Give your opinion and reasons.`,S8:`An unusual metal box with a red button related to ${t} has been left in your office. Describe it to a coworker.`}[id]];}
+function rl(i,sk,task){const o=O[i%10],v=V[(i/10|0)%5],d=D[i%7],tm=(6+i%5)+' p.m.',pr=15+i*7%36,n=20+i*3%30,nm=NM[i%5],ph=String(1000+i*37%9000),mo=M[i%12];
+ const spoken=ph.split('').join(' ');
+ const pass=`${o} will introduce ${v} starting on ${d}, ${mo}. Sessions begin at ${tm} and last about ninety minutes. The programme costs $${pr} per person, and each session is limited to ${n} participants.\n\nAnyone who wants to take part must register in advance. Registration is handled by ${nm}, who can be reached at 555-${ph}. Places are given on a first-come, first-served basis.\n\nThe organizers said the first month is a trial. Feedback will be collected and the schedule may change if demand is high.`;
+ const what=sk==='reading'?'text':'recording';
+ const q=[{type:'mcq',q:`On which day does the programme start?`,...mc(d,[D[(i+2)%7],D[(i+4)%7],D[(i+5)%7]],i%4),why:`The ${what} says it starts on ${d}.`,skill:'detail'},
+ {type:'mcq',q:'What time do sessions begin?',...mc(tm,[(7+i%5)+' p.m.',(5+i%5)+' p.m.',(8+i%5)+' a.m.'],(i+1)%4),why:`Sessions begin at ${tm}.`,skill:'numbers/dates'},
+ {type:'fill',q:'How much does the programme cost per person? (number only)',answer:String(pr),alt:['$'+pr],why:`It costs $${pr} per person.`,skill:'numbers/dates'},
+ {type:'tfng',q:'The programme is free for everyone.',answer:'False',why:`It costs $${pr} per person.`,skill:'detail'},
+ {type:'tfng',q:'Participants must register in advance.',answer:'True',why:'Advance registration is required.',skill:'detail'},
+ {type:'tfng',q:'Free parking is provided for participants.',answer:'Not Given',why:'Parking is never mentioned.',skill:'not given'},
+ {type:'fill',q:'Who handles registration? (surname only)',answer:nm.split(' ')[1],alt:[nm],why:`${nm} handles registration.`,skill:'spelling'},
+ {type:'mcq',q:'What is the maximum number of participants per session?',...mc(String(n),[String(n+10),String(n-5),String(n+20)],(i+2)%4),why:`Each session is limited to ${n}.`,skill:'numbers/dates'}];
+ if(sk==='reading')return {title:`${o}: ${v}`,passage:pass,questions:q};
+ const pp=pass.split('\n\n');
+ const script=task.spk===1?[{speaker:'Announcer',text:pp[0]+' '+pp[1].replace('555-'+ph,'555, '+spoken)}]:[{speaker:'Caller',text:`Hello, I'm calling about ${v} at ${o}.`},{speaker:'Clerk',text:`Of course. They start on ${d}, ${mo}. Sessions begin at ${tm}.`},{speaker:'Caller',text:'How much does it cost?'},{speaker:'Clerk',text:`It costs ${pr} dollars per person, and each session is limited to ${n} participants.`},{speaker:'Caller',text:'Do I need to register?'},{speaker:'Clerk',text:`Yes, in advance. Please call ${nm}. The number is 5 5 5, ${spoken}.`},{speaker:'Caller',text:'Thank you very much.'}];
+ return {title:`${o}: ${v}`,script,questions:q.filter(x=>x.skill!=='spelling'||true)};}
+fallback=function(task){const sk=S.skill,key=[sk,P.exam,P.module,task.id].join('|');P.bi=P.bi||{};const i=(P.bi[key]=(P.bi[key]||0)+1)-1;saveP();const N=P.exam==='IELTS'?30:50,t=T[i%N];
+ if(sk==='writing')return wr(t,i);if(sk==='speaking')return {prompts:sp(t,i)};return rl(i%N,sk,task);};
+
+
+/* ---- examiner onboarding ---- */
+const steps=()=>['name','exam',...(P.exam==='IELTS'?['mod']:[]),'took',...(P.took==='yes'?['prev']:[]),'target','goal','rules'];
+const pick=(act,v,n,s,on)=>`<button class="pick ${on?'on':''}" data-act="${act}" data-arg="${v}"><span><b>${n}</b>${s?`<small>${s}</small>`:''}</span></button>`;
+viewOnboard=function(){const st=steps(),k=st[S.ob.step]||'name',e=P.exam,nm=esc(P.name||'');let q,b='';
+ const sc=e==='CELPIP'?[3,4,5,6,7,8,9,10,11,12]:[4,5,5.5,6,6.5,7,7.5,8,8.5,9];
+ if(k==='name'){q="Good day, and welcome. I'm Bandy, your examiner and guide. First, what is your name?";b=`<input id="nm" value="${nm}" placeholder="Your full name" autocomplete="name" style="width:100%;box-sizing:border-box;font:inherit;font-size:18px;padding:14px;border:2px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink)">`;}
+ else if(k==='exam'){q=`Nice to meet you, ${nm}. Which exam are you preparing for?`;b=pick('obExam','CELPIP','CELPIP','General test, levels 1 to 12',e==='CELPIP')+pick('obExam','IELTS','IELTS','Academic or General Training, bands 0 to 9',e==='IELTS');}
+ else if(k==='mod'){q='Which IELTS version will you take?';b=pick('obMod','Academic','Academic','University and professional registration',P.module==='Academic')+pick('obMod','General','General Training','Work, training and migration',P.module==='General');}
+ else if(k==='took'){q=`Have you taken the ${e} before?`;b=pick('obTook','yes','Yes, I have','',P.took==='yes')+pick('obTook','no','No, this is my first time','',P.took==='no');}
+ else if(k==='prev'){q=`What was your most recent ${e==='CELPIP'?'level':'band'}?`;b=`<div class="pgrid2">${sc.map(v=>`<button class="pick ${P.prev===v?'on':''}" data-act="obPrev" data-arg="${v}"><b>${v}</b></button>`).join('')}</div>`;}
+ else if(k==='target'){q=`What ${e==='CELPIP'?'level':'band'} do you need to achieve?`;b=`<div class="pgrid2">${sc.filter(v=>v>=5).map(v=>`<button class="pick ${P.target[e]===v?'on':''}" data-act="obTarget" data-arg="${v}"><b>${v}</b></button>`).join('')}</div>`;}
+ else if(k==='goal'){q='How much will you practise each day?';b=[[20,'Casual','About one lesson'],[40,'Regular','Two lessons'],[60,'Serious','Three lessons'],[100,'Intense','Five lessons']].map(([v,n,s])=>pick('obGoal',v,n,s,P.goal===v)).join('');}
+ else{q=`Thank you, ${nm}. Before we begin, these are my rules:`;b=`<ol style="line-height:1.7;font-size:16px;padding-left:22px"><li>Every test is timed. The clock starts when you press Begin.</li><li>Do not leave or refresh the page during a test.</li><li>Listening plays once only.</li><li>Follow the task instructions exactly. Off-topic answers lose marks.</li><li>I mark strictly against the official ${e} scale.</li></ol>`;}
+ const last=k==='rules';
+ return `<div class="ob"><div class="lh">${S.ob.step>0?`<button class="x" data-act="obBack" aria-label="Back">${ic('back')}</button>`:'<span style="width:36px"></span>'}<div class="pbar"><i style="width:${100*(S.ob.step+1)/st.length}%"></i></div></div><div class="say">${bandy(S.ob.step?'happy':'cheer',84)}<div class="bubble">${q}</div></div><div class="stack">${b}</div><div class="abar"><div class="ab-in"><span></span><button class="btn" data-act="obNext">${last?'I understand. Begin':'Continue'}</button></div></div></div>`;};
+Object.assign(A,{obTook:v=>{P.took=v;render();},obPrev:v=>{P.prev=Number(v);render();},
+ obNext:()=>{const st=steps(),k=st[S.ob.step];if(k==='name'){const v=($('#nm')||{}).value||'';if(!v.trim()){$('#nm').focus();return;}P.name=v.trim().slice(0,40);saveP();}
+  if(k==='took'&&!P.took)return;if(k==='prev'&&!P.prev)return;
+  if(k==='rules'){P.onboarded=true;saveP();S.view='home';S.tab='learn';render(true);return;}S.ob.step++;saveP();render(true);},
+ obBack:()=>{S.ob.step=Math.max(0,S.ob.step-1);render(true);}});
+
+/* ---- strict test briefing ---- */
+startSheet=function(sk,t){const e=P.exam;
+ const r={listening:'The recording plays once only. You cannot replay it.',reading:'Answer in order. Short answers: stay within the word limit. Spelling counts.',writing:`Write at least ${t.words?t.words[0]:150} words. Spellcheck is off. Stay on topic and use paragraphs.`,speaking:'Speak clearly in full sentences. You cannot restart an answer.'}[sk];
+ showSheet(`<div class="sheet" data-skill="${sk}" role="dialog" aria-modal="true"><div class="sh-h"><span class="badge-sk">${ic(sk)}</span><div><h2>${esc(t.name)}</h2><p class="muted">${e} ${sk} test · Candidate: ${esc(P.name||'')}</p></div></div><div class="chips">${taskMeta(t,sk).split(' · ').map(m=>`<span class="chip">${esc(m)}</span>`).join('')}</div><p><b>Examiner's instructions</b></p><ul style="line-height:1.6;padding-left:20px"><li>${r}</li><li>The timer starts when you press Begin.</li><li>Do not leave the page. No notes or dictionaries.</li><li>You will be marked strictly on the ${e} scale.</li></ul><button class="btn block" data-act="start" data-arg="${sk}:${t.id}">Begin test</button><button class="btn ghost block" data-act="closeSheet">Not now</button></div>`);};
+if(!P.name){P.onboarded=false;S.ob.step=0;}
+render(true);
+})();
+
+
+/* ---- CELPIP strict mock exam ---- */
+(function(){
+const CARD='background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin:12px 0',INP='width:100%;box-sizing:border-box;font:inherit;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink)';
+let M=null,SR=window.SpeechRecognition||window.webkitSpeechRecognition,rec=null;
+const SEC=['listening','reading','writing','speaking'],NAME={listening:'Listening',reading:'Reading',writing:'Writing',speaking:'Speaking'};
+const lvl=p=>p>=90?12:p>=85?11:p>=78?10:p>=70?9:p>=62?8:p>=52?7:p>=42?6:p>=32?5:p>=22?4:3;
+function mk(h){let m=document.getElementById('mock');if(!m){m=document.createElement('div');m.id='mock';m.style.cssText='position:fixed;inset:0;z-index:999;overflow:auto;background:var(--bg);color:var(--ink);font-family:var(--body);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)';document.body.appendChild(m);}
+ m.innerHTML=`<div style="max-width:760px;margin:0 auto;padding:18px">${h}</div>`;m.scrollTop=0;}
+function close(){stopTimer();stopSpeech();try{rec&&rec.stop();}catch(e){}const m=document.getElementById('mock');if(m)m.remove();M=null;render(true);}
+const say=t=>`<div style="display:flex;gap:12px;align-items:center">${bandy('happy',64)}<div style="${CARD};margin:0;flex:1;font-weight:700">${t}</div></div>`;
+const bar=(l)=>`<div style="display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:10px"><span>CELPIP · ${l}</span><span id="mt" style="font-family:var(--disp);font-size:22px">--:--</span></div>`;
+const btn=(a,t,g)=>`<button class="btn ${g?'ghost':''} block" data-act="${a}" style="margin-top:10px">${t}</button>`;
+window.mockStart=function(){M={name:P.name||'',strikes:0};
+ mk(`${say("This is the CELPIP mock exam. I am your examiner. Please confirm your full name before we begin.")}<div style="${CARD}"><input id="mn" value="${esc(M.name)}" placeholder="Full name" style="${INP}"><p style="font-weight:800;margin:16px 0 6px">Which part will you sit?</p>${[['all','Full test (all four parts, about 3 hours)'],...SEC.map(s=>[s,NAME[s]+' only'])].map(([v,n],i)=>`<label style="display:block;padding:8px 0"><input type="radio" name="ms" value="${v}" ${i?'':'checked'}> ${n}</label>`).join('')}</div>${btn('mockRules','Continue')}${btn('mockExit','Back to Bandwise',1)}`);};
+window.mockRules=function(){const n=($('#mn')||{}).value||'';if(!n.trim()){$('#mn').focus();return;}M.name=n.trim();P.name=M.name;saveP();
+ const v=(document.querySelector('input[name=ms]:checked')||{}).value||'all';M.secs=v==='all'?SEC:[v];
+ mk(`${say(`Thank you, ${esc(M.name)}. Please listen carefully to the exam rules.`)}<div style="${CARD}"><ol style="line-height:1.8;padding-left:22px;margin:0"><li>Every part is timed. When time ends, your answers are submitted automatically.</li><li>You cannot go back or pause once a part begins.</li><li>Listening recordings play <b>once only</b>.</li><li>Pasting is disabled. Work alone, with no notes or dictionary.</li><li>Leaving this page is recorded and reported in your results.</li><li>You will get no feedback until the exam is finished.</li></ol></div>${btn('mockGo','I understand. Start the exam')}${btn('mockExit','Cancel',1)}`);};
+window.mockGo=function(){const ex=P.exam;P.exam='CELPIP';M.q=[];M.res={};
+ M.secs.forEach(sk=>{S.skill=sk;getTasks(sk).forEach((t,k)=>{S.task=t;let it=fallback(t);if(sk==='reading'||sk==='listening')it=prepRL(it);M.q.push({sk,t,it,first:k===0});});});
+ P.exam=ex;saveP();M.i=0;M.intro=false;show();};
+function show(){stopTimer();stopSpeech();if(M.i>=M.q.length)return results();const q=M.q[M.i],n=M.q.filter(x=>x.sk===q.sk);const pos=n.indexOf(q)+1;
+ if(q.first&&!M.intro){M.intro=true;const rule={listening:'Each recording plays once. Answer the questions that follow.',reading:'Read the text and answer all questions before time runs out.',writing:'Write your response in the box. Spellcheck is off.',speaking:'You will have preparation time, then speak. Your answer is captured once.'}[q.sk];
+  return mk(`${say(`${NAME[q.sk]} section. ${n.length} parts. ${rule}`)}${btn('mockPart','Begin '+NAME[q.sk]+' section')}`);}
+ M.intro=false;M.ph=0;part(q,pos,n.length);}
+window.mockPart=function(){M.intro=true;part(M.q[M.i],M.q.filter(x=>x.sk===M.q[M.i].sk).indexOf(M.q[M.i])+1,M.q.filter(x=>x.sk===M.q[M.i].sk).length);};
+function forms(qs){return qs.map((q,k)=>`<div style="${CARD}"><b>${k+1}. ${esc(q.q)}</b>${q.type==='fill'?`<input id="f${k}" style="${INP};margin-top:8px" autocomplete="off" placeholder="Your answer">`:q.options.map((o,j)=>`<label style="display:block;padding:6px 0"><input type="radio" name="q${k}" value="${j}"> ${esc(o)}</label>`).join('')}</div>`).join('');}
+function score(q){const qs=q.it.qs;let ok=0;qs.forEach((x,k)=>{if(x.type==='fill'){if(x.accept.includes(norm(($('#f'+k)||{}).value||'')))ok++;}else{const r=document.querySelector(`input[name=q${k}]:checked`);if(r&&Number(r.value)===x.correct)ok++;}});return {ok,n:qs.length};}
+function done(r){stopTimer();stopSpeech();try{rec&&rec.stop();}catch(e){}(M.res[M.q[M.i].sk]=M.res[M.q[M.i].sk]||[]).push(r);M.i++;M.intro=false;show();}
+function part(q,pos,tot){const l=`${NAME[q.sk]} · Part ${pos} of ${tot}`,t=q.t;
+ const nopaste=`onpaste="return false" ondrop="return false" spellcheck="false" autocomplete="off" autocorrect="off"`;
+ const submit=()=>{M.fin=()=>done(q.sk==='reading'||q.sk==='listening'?score(q):{p:q.it.prompt,x:($('#mx')||{}).value||''});};
+ if(q.sk==='reading'){mk(`${bar(l)}<div style="${CARD};white-space:pre-wrap;line-height:1.6"><b>${esc(q.it.title||'')}</b>\n\n${esc(q.it.passage)}</div>${forms(q.it.qs)}${btn('mockSub','Submit part')}`);submit();startTimer(t.min*60,'#mt',()=>M.fin());}
+ else if(q.sk==='listening'){mk(`${bar(l)}<div style="${CARD}"><b>${esc(t.name)}</b><p>The recording plays once. You cannot replay it.</p><button class="btn block" id="pl" data-act="mockPlay">Play recording</button></div><div id="lq"></div>`);M.cur=q;submit();}
+ else if(q.sk==='writing'){mk(`${bar(l)}<div style="${CARD};white-space:pre-wrap">${esc(q.it.prompt)}</div><textarea id="mx" ${nopaste} style="${INP};min-height:300px"></textarea><div id="wc" class="muted" style="margin:6px 0">0 words · Minimum ${t.words[0]}</div>${btn('mockSub','Submit response')}`);
+  $('#mx').oninput=()=>{$('#wc').textContent=words($('#mx').value)+' words · Minimum '+t.words[0];};submit();startTimer(t.min*60,'#mt',()=>M.fin());}
+ else{const p=q.it.prompts[0];mk(`${bar(l)}<div style="${CARD};white-space:pre-wrap">${esc(p)}</div><p id="ph" style="font-weight:800">Preparation time</p><textarea id="mx" disabled ${nopaste} placeholder="Your spoken answer is captured here. If your microphone is unavailable, type it." style="${INP};min-height:140px"></textarea><div id="sb">${btn('mockSub','Finish answer')}</div>`);$('#sb').hidden=true;
+  q.it.prompt=p;submit();startTimer(t.prep,'#mt',()=>{$('#ph').textContent='Speak now';const x=$('#mx');x.disabled=false;x.focus();$('#sb').hidden=false;
+   if(SR){try{rec=new SR();rec.lang='en-CA';rec.continuous=true;rec.interimResults=false;rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)x.value+=(x.value?' ':'')+e.results[i][0].transcript;};rec.start();}catch(e){}}
+   startTimer(t.speak,'#mt',()=>M.fin());});}}
+window.mockSub=()=>{if(M&&M.fin)M.fin();};
+window.mockPlay=function(){const q=M.cur,b=$('#pl');b.disabled=true;b.textContent='Playing… (once only)';
+ const after=()=>{b.textContent='Recording finished';$('#lq').innerHTML=forms(q.it.qs)+btn('mockSub','Submit part');startTimer(120,'#mt',()=>M.fin());};
+ if(!speakScript(q.it.script,after)){$('#lq').innerHTML=`<div style="${CARD}"><b>Audio is not supported in this browser. Transcript:</b><p style="white-space:pre-wrap">${q.it.script.map(s=>esc(s.speaker+': '+s.text)).join('\n')}</p></div>`+forms(q.it.qs)+btn('mockSub','Submit part');startTimer(240,'#mt',()=>M.fin());}};
+async function results(){mk(`${say(`Thank you, ${esc(M.name)}. The exam is finished. Your responses are being marked.`)}`);const out={};
+ for(const sk of M.secs){const rs=M.res[sk]||[];if(sk==='reading'||sk==='listening'){const ok=rs.reduce((a,r)=>a+r.ok,0),n=rs.reduce((a,r)=>a+r.n,0)||1;out[sk]={lv:lvl(100*ok/n),note:`${ok} of ${n} correct`};}
+  else{const ls=[];for(const r of rs){if(words(r.x)<5){ls.push(0);continue;}try{const j=await askJSON(`You are a strict CELPIP examiner. Mark this ${sk} response on the official CELPIP scale (1 to 12) using content and coherence, vocabulary, ${sk==='writing'?'readability':'listenability'} and task fulfilment. Be strict: off-topic or too short answers score low.\nTask: ${r.p}\nResponse: ${r.x}\nReturn ONLY JSON {"level":number,"comment":"one sentence"}`);ls.push(Math.max(1,Math.min(12,Number(j.level)||1)));}catch(e){}}
+   out[sk]=ls.length?{lv:Math.round(ls.reduce((a,b)=>a+b,0)/ls.length),note:`${ls.length} of ${rs.length} responses marked`}:{lv:null,note:'Marking needs Claude. Open this page inside Claude.'};}}
+ const v=Object.values(out).map(x=>x.lv).filter(x=>x!=null),ov=v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null,tg=P.target.CELPIP;
+ mk(`${say(ov==null?'Here is your report.':ov>=tg?`Well done, ${esc(M.name)}. You reached your target.`:`Thank you, ${esc(M.name)}. You are not at your target of Level ${tg} yet. Keep practising.`)}<div style="${CARD}"><h2 style="margin:0 0 8px">Candidate: ${esc(M.name)}</h2>${M.secs.map(s=>`<p style="display:flex;justify-content:space-between;margin:8px 0"><span><b>${NAME[s]}</b> <small class="muted">${esc(out[s].note)}</small></span><b>${out[s].lv==null?'-':'Level '+out[s].lv}</b></p>`).join('')}${ov!=null&&M.secs.length>1?`<hr><p style="display:flex;justify-content:space-between"><b>Overall (estimate)</b><b>Level ${ov}</b></p>`:''}<p class="muted">Times you left the exam page: ${M.strikes}</p></div>${btn('mockExit','Finish')}`);}
+window.mockExit=function(){if(M&&M.q&&M.i<M.q.length&&!confirm('Leaving ends the exam and your answers will not be saved. Leave?'))return;close();};
+document.addEventListener('visibilitychange',()=>{if(M&&M.q&&document.hidden)M.strikes++;});
+Object.assign(A,{mock:mockStart,mockRules,mockGo,mockPart,mockSub,mockPlay,mockExit});
+const tl=tabLearn;tabLearn=function(){return `<div style="${CARD};display:flex;gap:12px;align-items:center;border-color:var(--brand)"><div style="flex:1"><b>CELPIP Mock Exam</b><div class="muted" style="font-size:13px">Strict, timed, no feedback until the end</div></div><button class="btn" data-act="mock">Take exam</button></div>`+tl();};
+render();
+})();
+
+})();
+</script>
+
+
+
+</body></html>
